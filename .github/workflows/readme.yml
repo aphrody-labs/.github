@@ -1,0 +1,36 @@
+name: readme
+
+# Regenerates this profile README from the GitHub API with scripts/catalog.ts of aphrody-labs/aphrody
+# (projects ranked by stars, recent pushes and CI status; archived repositories left out).
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: readme
+  cancel-in-progress: true
+
+jobs:
+  readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - name: Fetch the generator
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/aphrody-labs/aphrody.git src
+          git -C src sparse-checkout set --no-cone /scripts/catalog.ts /scripts/catalog.config.json /package.json /packages/design/brand/brand.toml /packages/i18n/i18n.config.json /packages/i18n/catalogs/catalog
+      - name: Generate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bun src/scripts/catalog.ts profile aphrody-labs --out profile/README.md
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add profile/README.md
+          if git diff --cached --quiet; then echo "up to date"; else git commit -m "readme: regenerate from the GitHub API" && git push; fi
