@@ -8,7 +8,7 @@
 
 <p align="center">Systems, runtimes and desktops in Rust and Bun</p>
 
-## Projects
+## Projects (stale)
 
 | Project | Description | Language | Stars | CI |
 | :-- | :-- | :-- | --: | :-: |
