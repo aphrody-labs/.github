@@ -1,6 +1,6 @@
 name: readme
 
-# Regenerates this profile README from the GitHub API with scripts/catalog.ts of aphrody-labs/aphrody
+# Regenerates this profile README from the GitHub API with scripts/catalog.ts of aphrody-labs/ay
 # (projects ranked by stars, recent pushes and CI status; archived repositories left out).
 on:
   schedule:
@@ -22,8 +22,8 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - name: Fetch the generator
         run: |
-          git clone --depth 1 --filter=blob:none --sparse https://github.com/aphrody-labs/aphrody.git src
-          git -C src sparse-checkout set --no-cone /scripts/catalog.ts /scripts/catalog.config.json /package.json /packages/i18n/i18n.config.json /packages/i18n/catalogs/catalog
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/aphrody-labs/ay.git src
+          git -C src sparse-checkout set --no-cone /scripts /package.json /frameworks/i18n-ts
       - name: Generate
         env:
           GH_TOKEN: ${{ github.token }}
