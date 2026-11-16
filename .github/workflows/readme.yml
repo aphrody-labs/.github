@@ -23,7 +23,7 @@ jobs:
       - name: Fetch the generator
         run: |
           git clone --depth 1 --filter=blob:none --sparse https://github.com/aphrody-labs/ay.git src
-          git -C src sparse-checkout set --no-cone /scripts /package.json /frameworks/i18n-ts
+          git -C src sparse-checkout set --no-cone /scripts /package.json /packages/design/brand /packages/i18n /frameworks/i18n-ts
       - name: Generate
         env:
           GH_TOKEN: ${{ github.token }}
