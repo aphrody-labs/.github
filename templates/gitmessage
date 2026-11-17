@@ -1,0 +1,17 @@
+type(scope): imperative summary, 72 characters at most
+
+# Problem: what was wrong or missing, and who sees it.
+#
+# Change: what this commit does and why this approach. Name the fix
+# when the commit also refactors.
+#
+# Verified: the commands run and what they printed; what was not run.
+#
+# Trailers (last, after a blank line):
+#   Fixes #123
+#   Fixes: <12 hex> ("subject of the culprit commit")
+#   BREAKING CHANGE: what to do instead      (and "!" after the type)
+#
+# Types: feat fix docs chore refactor perf test build ci revert
+# No assistant or bot attribution. Signed-off-by only when the README asks.
+# Lines starting with "#" are dropped. Rules: docs/standards/commit-format.md

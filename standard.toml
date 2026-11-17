@@ -167,7 +167,7 @@ invalid = "wontfix"
 org_fallback = [
   "CONTRIBUTING.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "SUPPORT.md",
   ".github/ISSUE_TEMPLATE/bug.yml", ".github/ISSUE_TEMPLATE/feature.yml",
-  ".github/ISSUE_TEMPLATE/docs.yml", ".github/ISSUE_TEMPLATE/config.yml",
+  ".github/ISSUE_TEMPLATE/docs.yml", ".github/ISSUE_TEMPLATE/crash.yml", ".github/ISSUE_TEMPLATE/config.yml",
   ".github/pull_request_template.md",
 ]
 # Required in every original (copy from templates/ when missing). Not inherited by GitHub.
@@ -178,14 +178,72 @@ original_required = [
 # Required when the repository publishes a package, a release or a site.
 published_required = [".github/release.yml", ".github/workflows/release.yml"]
 # Recommended (lint warns).
-original_recommended = ["AGENTS.md", "docs/index.md", "CHANGELOG.md", ".markdownlint-cli2.jsonc"]
+original_recommended = ["AGENTS.md", "docs/index.md", "CHANGELOG.md", ".markdownlint-cli2.jsonc", ".gitmessage", "REVIEW.md"]
 # Never committed.
 forbidden = [".env", ".env.*", "*.pem", "*.p12", "*.pfx", "id_rsa", "id_ed25519", "*.sqlite-wal", ".dev.vars"]
-# A repository-level .github/ISSUE_TEMPLATE replaces the whole org set: keep the same four file names or none.
+# A repository-level .github/ISSUE_TEMPLATE replaces the whole org set: keep the same five file names or none.
 issue_templates_all_or_nothing = true
 readme_language = "en"
 default_license = "Apache-2.0"
 license_exceptions = "forks and mirrors keep the upstream license untouched"
+
+# Files copied from templates/ (never inherited). "when" is a manifest that must exist at the repository root; "mode" is copy (whole file)
+# or merge (sections copied into an existing file by hand). The apply phase only reports a missing copy (stepNeeds); it never overwrites.
+[[files.templates]]
+source = "templates/gitmessage"
+dest = ".gitmessage"
+mode = "copy"
+note = "git config commit.template .gitmessage"
+
+[[files.templates]]
+source = "templates/REVIEW.md"
+dest = "REVIEW.md"
+mode = "copy"
+
+[[files.templates]]
+source = "templates/rustfmt.toml"
+dest = "rustfmt.toml"
+when = "Cargo.toml"
+mode = "copy"
+
+[[files.templates]]
+source = "templates/rustfmt.browser.toml"
+dest = "rustfmt.toml"
+when = "Cargo.toml"
+mode = "merge"
+note = "browser-facing crates on a pinned nightly only"
+
+[[files.templates]]
+source = "templates/clippy.toml"
+dest = "clippy.toml"
+when = "Cargo.toml"
+mode = "copy"
+
+[[files.templates]]
+source = "templates/rust-lints.toml"
+dest = "Cargo.toml"
+when = "Cargo.toml"
+mode = "merge"
+note = "[workspace.lints.*] tables, then [lints] workspace = true in each member"
+
+[[files.templates]]
+source = "templates/bunfig.standard.toml"
+dest = "bunfig.toml"
+when = "package.json"
+mode = "merge"
+note = "[fmt] and [lint] sections"
+
+[code_style]
+# docs/standards/code-style.md and its machine-readable parts. tools/check-commit.ts reads these keys and naming.commit_types.
+doc = "docs/standards/code-style.md"
+sources = "docs/standards/sources.toml"
+conflicts = "docs/standards/conflicts.md"
+commit_subject_max = 72
+commit_body_wrap = 72          # hard-wrap target for direct commits (CO-12)
+commit_body_max = 100          # the checker warns above this; tables, code and long URLs are exempt
+pr_title_is_squash_subject = true
+bun_fmt_print_width = 100
+rustfmt_max_width = 100        # the rustfmt default; documented here so it is not set per repository
 
 [readme]
 required_sections = ["Install", "Usage", "Development", "License"]

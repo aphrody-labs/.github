@@ -1,0 +1,5 @@
+# clippy options of the Aphrody Labs code standard (docs/standards/code-style.md, RS-24). The MSRV is read from `rust-version` in Cargo.toml.
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-dbg-in-tests = true
+check-private-items = true

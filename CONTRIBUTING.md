@@ -24,7 +24,7 @@ Run the checks locally before you push. Heavy builds run on the build host or in
 ## Changes
 
 1. Keep one logical change per pull request; keep it small enough to review in one sitting.
-2. Commit messages follow Conventional Commits: `type(scope): subject`, imperative, 72 characters or fewer. Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `perf`, `test`, `build`, `ci`, `revert`. Mark breaking changes with `!` and a `BREAKING CHANGE:` footer.
+2. Commit messages follow Conventional Commits: `type(scope): subject`, imperative, 72 characters or fewer, with a body that says why and how it was verified. Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `perf`, `test`, `build`, `ci`, `revert`. Mark breaking changes with `!` and a `BREAKING CHANGE:` footer. Format and examples: [commit-format.md](docs/standards/commit-format.md); check with `bun tools/check-commit.ts --range origin/main..HEAD`.
 3. Add or update tests and docs with the code. Delete dead code instead of commenting it out.
 4. Do not commit secrets, `.env` files, generated build output or vendored copies of code that a dependency manager can fetch.
 5. Do not add tool-generated attribution trailers to commits.
@@ -32,13 +32,17 @@ Run the checks locally before you push. Heavy builds run on the build host or in
 
 ## Pull requests
 
-Fill in the pull request template. A pull request is ready when:
+Fill in the pull request template: what changed and why, how it was verified (commands and output), risk, rollback. The title is the squash commit subject and follows the commit rules. A pull request is ready when:
 
 - CI is green (`ci / gate`), including docs lint when docs changed.
 - New behavior has a test; user-visible changes have a docs entry and, for published packages, a label from the release notes categories (`breaking`, `feature`, `bug`, `docs`, `chore`).
 - All review threads are resolved. Squash or rebase merge only; history on the default branch is linear.
 
 Maintainers who work solo or through automation may commit to the default branch directly. The history rules still apply: no force push, no deletion, linear history.
+
+## Code style and review
+
+Code follows the [unified code style](docs/standards/code-style.md): `bun fmt` and `bun lint` for TypeScript, `rustfmt` and `clippy` for Rust, with the configuration in `templates/`. Reviewers use the [review checklist](templates/REVIEW.md).
 
 ## Documentation
 

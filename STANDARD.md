@@ -22,6 +22,7 @@ Scope: the `aphrody-labs` organization (free plan) and the `aphrody-dev` user ac
 - [16. Organization profile](#16-organization-profile)
 - [17. Apply order and verification](#17-apply-order-and-verification)
 - [18. Verified facts](#18-verified-facts)
+- [19. Code, commits, pull requests and reviews](#19-code-commits-pull-requests-and-reviews)
 
 ## 1. Repository classes
 
@@ -57,7 +58,7 @@ docs/                     Markdown, or MDX for published sites
 src/ or crates/ or packages/ or cmd/    code, by stack
 ```
 
-Inherited from `aphrody-labs/.github` when a repository has none: `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `SUPPORT.md`, the issue forms and the pull request template. A repository-level `.github/ISSUE_TEMPLATE/` replaces the whole inherited set, so keep all four files or none.
+Inherited from `aphrody-labs/.github` when a repository has none: `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `SUPPORT.md`, the issue forms and the pull request template. A repository-level `.github/ISSUE_TEMPLATE/` replaces the whole inherited set, so keep all five files or none.
 
 Never committed: `.env*`, keys and certificates (`*.pem`, `*.p12`, `id_*`), `.dev.vars`, build output, vendored copies that a package manager can fetch. Vendored upstream code lives in a git submodule with a relative URL, one checkout each; forks are submodules, not copies.
 
@@ -95,7 +96,7 @@ Licenses: originals default to Apache-2.0; add a `LICENSE` file wherever the API
 | Repository | `^[a-z0-9][a-z0-9._-]*$`, at most 50 characters, no `-1` suffixes for duplicates (archive the duplicate instead). Forks keep the upstream name. |
 | Default branch | `main`. Forks keep upstream's branch. |
 | Tags | `vMAJOR.MINOR.PATCH[-prerelease]` (semver). Release tags are immutable. |
-| Commits | Conventional Commits: `type(scope): subject`, imperative, 72 characters at most. Types: feat, fix, docs, chore, refactor, perf, test, build, ci, revert. Breaking: `!` and a `BREAKING CHANGE:` footer. No AI attribution trailers. |
+| Commits | Conventional Commits: `type(scope): subject`, imperative, 72 characters at most. Types: feat, fix, docs, chore, refactor, perf, test, build, ci, revert. Breaking: `!` and a `BREAKING CHANGE:` footer. No AI attribution trailers. Full rules and the checker: section 19. |
 | Workflow files | `ci.yml`, `release.yml`, `docs.yml`, `pages.yml`; the workflow `name:` equals the file stem. Reusable ones live only in this repository. |
 | Topics | lowercase kebab, at most 20, one role topic. |
 | Labels | section 5. |
@@ -116,8 +117,8 @@ Area labels (`area:cli`, `area:docs`) are per repository and prefixed `area:`.
 
 ## 6. Issue forms, pull request template, CODEOWNERS, community files
 
-- Issue forms (YAML, `.github/ISSUE_TEMPLATE/`): `bug.yml`, `feature.yml`, `docs.yml`, plus `config.yml` with `blank_issues_enabled: false` and contact links to the security policy and SUPPORT. Forms apply the type label and `needs-triage`.
-- Pull request template: `.github/pull_request_template.md` (what and why, changes, checks, breaking changes). Checks mirror CONTRIBUTING.md.
+- Issue forms (YAML, `.github/ISSUE_TEMPLATE/`): `bug.yml`, `feature.yml`, `docs.yml`, `crash.yml`, plus `config.yml` with `blank_issues_enabled: false` and contact links to the security policy and SUPPORT. Forms apply the type label and `needs-triage`.
+- Pull request template: `.github/pull_request_template.md` (what changed and why, how it was verified with commands and output, risk, rollback, breaking changes, checklist). Checks mirror CONTRIBUTING.md and section 19.
 - CODEOWNERS is not inherited: each original carries `.github/CODEOWNERS` from the template. Owners are real GitHub users or teams with write access; the solo setup uses the owner account. Code-owner review is not required in rulesets (a solo maintainer cannot approve their own pull request).
 - `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `SUPPORT.md` live in this repository and apply everywhere by default.
 - Security reports use private vulnerability reporting plus contact@aphrody.com; never public issues.
@@ -330,3 +331,19 @@ Checked in the session of 2026-11-17 against live sources.
 | Action versions and SHAs in `[actions.pinned_versions]` | `gh api repos/<action>/releases/latest` and `commits/<tag>` |
 
 Not verified here (the apply phase must try and record the HTTP status): availability of the `merge_queue` rule on this plan, security configuration attach on private repositories, and the exact `ci / gate` check name before enforcement.
+
+## 19. Code, commits, pull requests and reviews
+
+One standard for TypeScript and JavaScript on Bun, Rust (userland, kernel-facing, browser-facing), tests, comments, commits, pull requests and reviews: [docs/standards/code-style.md](docs/standards/code-style.md). Every rule carries a source tag, a section and a status (adopted, adapted, rejected); every source is fetched live and recorded with URL, retrieval date, sha256 and size in [docs/standards/sources.toml](docs/standards/sources.toml); disagreements between sources are decided in [docs/standards/conflicts.md](docs/standards/conflicts.md). Machine-readable keys: `[code_style]` and `[[files.templates]]` in standard.toml.
+
+| Part | Where |
+| :-- | :-- |
+| Commit message format, template | [docs/standards/commit-format.md](docs/standards/commit-format.md), [templates/gitmessage](templates/gitmessage) |
+| Commit and pull request title checker | `bun tools/check-commit.ts`, tests with `bun test tools` |
+| Pull request template, issue forms | `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/` |
+| Review checklist | [templates/REVIEW.md](templates/REVIEW.md) |
+| Bun formatter and linter settings | [templates/bunfig.standard.toml](templates/bunfig.standard.toml) |
+| rustfmt, Cargo lints, clippy | [templates/rustfmt.toml](templates/rustfmt.toml), [templates/rustfmt.browser.toml](templates/rustfmt.browser.toml), [templates/rust-lints.toml](templates/rust-lints.toml), [templates/clippy.toml](templates/clippy.toml) |
+| Source fetcher and measurement | `bun tools/standards-sources.ts`, `bun tools/bun-practice.ts` |
+
+Precedence: a repository's own AGENTS.md and the conventions of a fork or vendored tree, then the output of the native tools, then the standard. For Bun-run code, `bun fmt` and `bun lint` win over any style guide.

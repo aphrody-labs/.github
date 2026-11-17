@@ -1,0 +1,41 @@
+# Lint tables of the Aphrody Labs code standard (docs/standards/code-style.md, section 2). Merge into the root Cargo.toml
+# and add `[lints] workspace = true` to every member crate. Levels are warn; CI runs `cargo clippy --all-targets -- -D warnings` (RS-23).
+
+[workspace.lints.rust]
+unsafe_op_in_unsafe_fn = "deny"                               # RS-07
+non_ascii_idents = "deny"                                     # RS-19
+missing_docs = "warn"                                         # RS-18
+unreachable_pub = "warn"                                      # RS-18
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[workspace.lints.rustdoc]
+missing_crate_level_docs = "warn"                             # RK-04
+unescaped_backticks = "warn"                                  # RK-04
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+# Unsafe (RS-06, RS-08)
+undocumented_unsafe_blocks = "warn"
+unnecessary_safety_comment = "warn"
+unnecessary_safety_doc = "warn"
+missing_safety_doc = "warn"
+multiple_unsafe_ops_per_block = "warn"
+# Casts (RS-12)
+as_underscore = "warn"
+cast_lossless = "warn"
+ptr_as_ptr = "warn"
+ptr_cast_constness = "warn"
+ref_as_ptr = "warn"
+as_ptr_cast_mut = "warn"
+# Correctness and clarity (RS-10, RS-11, RS-15, RS-09)
+ignored_unit_patterns = "warn"
+mut_mut = "warn"
+needless_bitwise_bool = "warn"
+no_mangle_with_rust_abi = "warn"
+dbg_macro = "warn"
+todo = "warn"
+unimplemented = "warn"
+unwrap_used = "warn"
+clone_on_ref_ptr = "warn"
+mem_forget = "warn"
+allow_attributes_without_reason = "warn"

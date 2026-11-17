@@ -6,22 +6,22 @@ body:
   - type: textarea
     id: problem
     attributes:
-      label: Problem
+      label: What problem would this solve
       description: What you cannot do today, and why it matters.
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
-      label: Proposal
-      description: The behavior you want. An API sketch or example is welcome.
+      label: What do you propose
+      description: The behavior you want. An API sketch or example is welcome. Say whether a CLI flag, an API or both is affected.
     validations:
       required: true
   - type: textarea
     id: alternatives
     attributes:
       label: Alternatives considered
-      description: Existing tools or upstream features that almost fit.
+      description: Existing tools, upstream features or workarounds that almost fit, and why they do not.
   - type: dropdown
     id: contribute
     attributes:

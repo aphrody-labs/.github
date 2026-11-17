@@ -1,0 +1,36 @@
+# Formatter and linter sections of the Aphrody Labs code standard (docs/standards/code-style.md, section 1).
+# Merge into the repository's bunfig.toml; keep the repository's own [install], [test] and other sections.
+# Checks: `bun fmt --check` and `bun lint` (both native, nothing to install).
+
+[fmt]
+# Quotes, semicolons and trailing commas are the formatter's defaults (TS-02). Only the width is set (TS-03, C-02).
+printWidth = 100
+
+[lint]
+# `bun lint` keeps its default rules (ESLint and typescript-eslint recommended, test rules for bun:test files).
+# These turn on the Google TypeScript rules that a native rule can enforce.
+
+[lint.rules]
+"eqeqeq" = ["error", "smart"]                         # TS-05: === and !==; `== null` stays legal
+"no-var" = "error"                                    # TS-04
+"prefer-const" = "error"                              # TS-04
+"curly" = ["error", "multi-line"]                     # TS-17: braces, one-line `if` may omit them
+"prefer-template" = "warn"                            # TS-18
+"no-eval" = "error"                                   # TS-12
+"no-implied-eval" = "error"                           # TS-12
+"no-new-wrappers" = "error"                           # TS-12
+"no-debugger" = "error"                               # TS-12
+"@typescript-eslint/no-explicit-any" = "warn"         # TS-08
+"@typescript-eslint/no-non-null-assertion" = "warn"   # TS-10
+"@typescript-eslint/no-namespace" = "error"           # TS-06
+"@typescript-eslint/no-wrapper-object-types" = "error" # TS-12
+"@typescript-eslint/consistent-type-definitions" = ["error", "interface"] # TS-11
+"@typescript-eslint/array-type" = ["error", { default = "array-simple" }] # TS-11
+"@typescript-eslint/ban-ts-comment" = ["error", { ts-expect-error = "allow-with-description", ts-ignore = true, ts-nocheck = true, minimumDescriptionLength = 10 }] # TS-09
+"import/no-default-export" = "warn"                   # TS-07: named exports
+"import/no-mutable-exports" = "error"                 # TS-07: no `export let`
+
+[[lint.overrides]]
+# Tools and the Bun runtime read a default export from these files (TS-07, C-04).
+files = ["*.config.*", "bunfig.*"]
+rules = { "import/no-default-export" = "off" }

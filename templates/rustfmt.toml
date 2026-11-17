@@ -1,0 +1,8 @@
+# rustfmt baseline of the Aphrody Labs code standard (docs/standards/code-style.md, RS-01 to RS-04).
+# Stable options only; everything else is the rustfmt default (4 spaces, 100 columns, block indent).
+# Check: `cargo fmt --check`. Kernel-facing code uses this file unchanged and adds the vertical import
+# layout by hand (RK-01). Browser-facing code on a pinned nightly adds templates/rustfmt.browser.toml.
+edition = "2024"
+style_edition = "2024"
+newline_style = "Unix"
+hex_literal_case = "Lower"

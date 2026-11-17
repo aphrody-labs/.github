@@ -1,0 +1,5 @@
+# Overlay for browser-facing crates (docs/standards/code-style.md, RB-03). Append to rustfmt.toml.
+# These options exist only in nightly rustfmt, so use them only where rust-toolchain.toml pins a nightly.
+unstable_features = true
+imports_granularity = "Module"
+format_macro_matchers = true

@@ -1,0 +1,45 @@
+name: Crash report
+description: The program crashed, hung or aborted
+title: "crash: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the report: crashes are the most useful bugs to fix. Search existing issues for the same stack first. Never paste secrets; remove them from logs.
+  - type: textarea
+    id: repro
+    attributes:
+      label: How can we reproduce the crash
+      description: A minimal reproduction (a repository or a snippet) and the exact command. If it only crashes sometimes, say how often.
+    validations:
+      required: true
+  - type: textarea
+    id: trace
+    attributes:
+      label: Stack trace or crash report
+      description: The full text the program printed, or the link to the crash report it produced.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: The tool's version command, a release tag, or `git rev-parse --short HEAD`.
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: "`uname -mprs` on Linux and macOS; the Windows version and architecture on Windows."
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched open and closed issues.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true
