@@ -139,6 +139,8 @@ for (const k of ["doc", "sources", "conflicts"]) {
   if (!cs[k]) err(`standard.toml: code_style.${k} is missing`);
   else if (!(await Bun.file(join(root, cs[k])).exists())) err(`code_style.${k}: ${cs[k]} does not exist`);
 }
+if (!(std.naming?.commit_styles ?? []).includes(cs.commit_style)) err("standard.toml: code_style.commit_style must be one of naming.commit_styles");
+if (cs.commit_style !== std.naming?.commit) err("standard.toml: code_style.commit_style and naming.commit differ");
 for (const k of ["commit_subject_max", "commit_body_max", "commit_body_wrap"]) if (!Number.isInteger(cs[k]) || cs[k] < 20) err(`standard.toml: code_style.${k} must be an integer`);
 for (const t of std.files?.templates ?? []) {
   if (!t.source || !t.dest || !["copy", "merge"].includes(t.mode)) err(`files.templates: needs source, dest and mode copy|merge (${JSON.stringify(t)})`);

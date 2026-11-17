@@ -24,7 +24,7 @@ Run the checks locally before you push. Heavy builds run on the build host or in
 ## Changes
 
 1. Keep one logical change per pull request; keep it small enough to review in one sitting.
-2. Commit messages follow Conventional Commits: `type(scope): subject`, imperative, 72 characters or fewer, with a body that says why and how it was verified. Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `perf`, `test`, `build`, `ci`, `revert`. Mark breaking changes with `!` and a `BREAKING CHANGE:` footer. Format and examples: [commit-format.md](docs/standards/commit-format.md); check with `bun tools/check-commit.ts --range origin/main..HEAD`.
+2. Commit messages follow Bun's shape, `area: summary` (for example `install: keep the bin link of a native dependency`), imperative, 72 characters or fewer, with a body that says why and how it was verified; `type(scope): summary` is also accepted. Mark breaking changes with a `BREAKING CHANGE:` footer. Format and examples: [commit-format.md](docs/standards/commit-format.md); check with `bun tools/check-commit.ts --range origin/main..HEAD`.
 3. Add or update tests and docs with the code. Delete dead code instead of commenting it out.
 4. Do not commit secrets, `.env` files, generated build output or vendored copies of code that a dependency manager can fetch.
 5. Do not add tool-generated attribution trailers to commits.

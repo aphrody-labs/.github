@@ -26,9 +26,26 @@ describe("subject", () => {
   test("rejects an unknown type", () => {
     expect(ids("feature: add a thing\n\nwhy")).toEqual(["CO-01"]);
   });
-  test("rejects the area style unless asked for", () => {
-    expect(ids("install: fix the bin link\n\nwhy")).toEqual(["CO-01"]);
+  test("the standard's default style is area, and conventional is the strict alternative", () => {
+    expect(cfg.style).toBe("area");
     expect(ids("install: fix the bin link\n\nwhy", { style: "area" })).toEqual([]);
+    expect(ids("install: fix the bin link\n\nwhy", { style: "conventional" })).toEqual(["CO-01"]);
+    expect(ids("fix(install): fix the bin link\n\nwhy", { style: "area" })).toEqual([]);
+  });
+  test("area style: Bun-shaped subjects pass, shapeless ones fail, the other subject rules still apply", () => {
+    const area = (m: string) => ids(m, { style: "area" });
+    expect(area("AOT: added evaluated imports and tests of the engine's fixes\n\nwhy")).toEqual(["CO-02"]);
+    expect(area("tls: stop a node:https busy loop after a rejected send\n\nwhy")).toEqual([]);
+    expect(area("css/parser: keep the comment above a rule\n\nwhy")).toEqual([]);
+    expect(area("Fix the build of bun_bundler\n\nwhy")).toEqual(["CO-01"]);
+    expect(area("http: fixed a hang.\n\nwhy")).toEqual(["CO-02", "CO-02"]);
+    expect(area("http: stop a hang.\n\nwhy")).toEqual(["CO-02"]);
+    expect(area("ci: update\n\nwhy")).toEqual(["CO-02"]);
+    expect(area("http: " + "ab ".repeat(30) + "\n\nwhy")).toEqual(["CO-02"]);
+  });
+  test("area style: a breaking subject needs the footer, with or without a bang", () => {
+    expect(ids("http!: drop the legacy flag entirely\n\nwhy", { style: "area" })).toEqual(["CO-08"]);
+    expect(ids("http!: drop the legacy flag entirely\n\nwhy\n\nBREAKING CHANGE: use --new", { style: "area" })).toEqual([]);
   });
   test("rejects a subject over 72 characters and counts exactly 72 as fine", () => {
     const ok = "fix: " + "ab ".repeat(22) + "z";

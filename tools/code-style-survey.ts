@@ -38,7 +38,7 @@ for (const dir of dirs) {
   const byRule = new Map<string, number>();
   let failing = 0;
   for (const m of log) {
-    const f: Finding[] = check(m, { ...cfg, style: "conventional", dco: false, title: false }).filter((x) => x.level === "error");
+    const f: Finding[] = check(m, { ...cfg, dco: false, title: false }).filter((x) => x.level === "error");
     if (f.length) failing++;
     for (const id of new Set(f.map((x) => x.id))) byRule.set(id, (byRule.get(id) ?? 0) + 1);
   }

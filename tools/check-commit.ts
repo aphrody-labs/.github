@@ -6,7 +6,7 @@
 //   bun tools/check-commit.ts --message-file <path>      commit-msg hook: one message, git comment lines ignored
 //   bun tools/check-commit.ts --title "<pull request title>"
 //   bun tools/check-commit.ts --range <git range>        every commit of the range, e.g. origin/main..HEAD
-// Options: --style=conventional|area (area also accepts "area: summary" for forks that track an upstream), --types=a,b (override the type list), --dco (Signed-off-by required),
+// Options: --style=area|conventional (default: code_style.commit_style, "area": "area: summary", type(scope) form also accepted; "conventional": only type(scope): summary), --types=a,b (override the type list), --dco (Signed-off-by required),
 //          --strict (warnings fail too), --json.
 // Exit: 0 clean, 1 at least one error (or warning with --strict), 2 usage.
 import { join } from "node:path";
@@ -16,7 +16,7 @@ export interface Options { types: string[]; style: Style; dco: boolean; maxSubje
 export interface Finding { level: "error" | "warning"; id: string; message: string }
 
 const SUBJECT = (types: string[]) => new RegExp(`^(${types.join("|")})(\\(([a-z0-9][a-z0-9._/-]*)\\))?(!)?: (\\S.*)$`);
-const AREA = /^([A-Za-z0-9][A-Za-z0-9._/-]*(?:\([^)]*\))?): (\S.*)$/;
+const AREA = /^([A-Za-z0-9][A-Za-z0-9._/-]*(?:\([^)]*\))?)(!)?: (\S.*)$/;
 const NON_IMPERATIVE = /^(added|adds|adding|fixed|fixes|fixing|updated|updates|updating|removed|removes|removing|changed|changes|changing|deleted|deleting|implemented|implements|implementing|refactored|refactoring|improved|improves|improving)\b/i;
 const VAGUE = /^(fix(es)?( (bug|bugs|it|stuff|things|build|issue|issues))?|bugs?|issues?|things?|it|update[sd]?|wip|misc|changes?|stuff|tweaks?|cleanup|clean up|more fixes|phase \d+|add patch|temp|test|asdf|\.+)$/i;
 const ATTRIBUTION = [
@@ -54,12 +54,12 @@ export function check(raw: string, opt: Options): Finding[] {
   if (isException(subject)) return f;
 
   const conventional = SUBJECT(opt.types).exec(subject);
-  const area = opt.style === "area" ? AREA.exec(subject) : null;
+  const area = opt.style === "area" && !conventional ? AREA.exec(subject) : null;
   let summary = "";
   let breaking = false;
   if (conventional) { summary = conventional[5]!; breaking = !!conventional[4]; }
-  else if (area) summary = area[2]!;
-  else add("error", "CO-01", `subject must be "type(scope): summary" with type one of ${opt.types.join(", ")}${opt.style === "area" ? ' (or "area: summary")' : ""}`);
+  else if (area) { summary = area[3]!; breaking = !!area[2]; }
+  else add("error", "CO-01", opt.style === "area" ? 'subject must be "area: summary" (or "type(scope): summary")' : `subject must be "type(scope): summary" with type one of ${opt.types.join(", ")}`);
 
   if (subject.length > opt.maxSubject) add("error", "CO-02", `subject is ${subject.length} characters, limit ${opt.maxSubject}`);
   if (summary) {
@@ -110,19 +110,20 @@ async function sh(args: string[]): Promise<string> {
   return out;
 }
 
-export async function loadConfig(root: string): Promise<Pick<Options, "types" | "maxSubject" | "maxBody">> {
-  const std = Bun.TOML.parse(await Bun.file(join(root, "standard.toml")).text()) as { naming: { commit_types: string[] }; code_style: { commit_subject_max: number; commit_body_max: number } };
-  return { types: std.naming.commit_types, maxSubject: std.code_style.commit_subject_max, maxBody: std.code_style.commit_body_max };
+export async function loadConfig(root: string): Promise<Pick<Options, "types" | "maxSubject" | "maxBody" | "style">> {
+  const std = Bun.TOML.parse(await Bun.file(join(root, "standard.toml")).text()) as { naming: { commit_types: string[] }; code_style: { commit_style: Style; commit_subject_max: number; commit_body_max: number } };
+  return { types: std.naming.commit_types, style: std.code_style.commit_style, maxSubject: std.code_style.commit_subject_max, maxBody: std.code_style.commit_body_max };
 }
 
 if (import.meta.main) {
   const argv = process.argv.slice(2);
   const val = (k: string) => { const i = argv.indexOf(`--${k}`); if (i >= 0) return argv[i + 1]; return argv.find((a) => a.startsWith(`--${k}=`))?.split("=").slice(1).join("="); };
   const has = (k: string) => argv.includes(`--${k}`);
-  const style = (val("style") ?? "conventional") as Style;
   const typesFile = val("types");
   const root = join(import.meta.dir, "..");
   const cfg = await loadConfig(root);
+  const style = (val("style") ?? cfg.style) as Style;
+  if (style !== "area" && style !== "conventional") { console.error(`unknown --style ${style}`); process.exit(2); }
   const opt: Options = { ...cfg, types: typesFile ? typesFile.split(",") : cfg.types, style, dco: has("dco"), title: false };
   const jobs: { label: string; text: string; title: boolean }[] = [];
   if (val("message-file")) jobs.push({ label: val("message-file")!, text: await Bun.file(val("message-file")!).text(), title: false });

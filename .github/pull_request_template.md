@@ -1,4 +1,4 @@
-<!-- Title: type(scope): imperative summary, at most 72 characters. It becomes the squash commit subject. Rules: docs/standards/code-style.md -->
+<!-- Title: area: imperative summary, at most 72 characters (type(scope): summary is also accepted). It becomes the squash commit subject. Rules: docs/standards/code-style.md -->
 
 ## What changed and why
 

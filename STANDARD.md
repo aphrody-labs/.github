@@ -96,7 +96,7 @@ Licenses: originals default to Apache-2.0; add a `LICENSE` file wherever the API
 | Repository | `^[a-z0-9][a-z0-9._-]*$`, at most 50 characters, no `-1` suffixes for duplicates (archive the duplicate instead). Forks keep the upstream name. |
 | Default branch | `main`. Forks keep upstream's branch. |
 | Tags | `vMAJOR.MINOR.PATCH[-prerelease]` (semver). Release tags are immutable. |
-| Commits | Conventional Commits: `type(scope): subject`, imperative, 72 characters at most. Types: feat, fix, docs, chore, refactor, perf, test, build, ci, revert. Breaking: `!` and a `BREAKING CHANGE:` footer. No AI attribution trailers. Full rules and the checker: section 19. |
+| Commits | `area: summary` (Bun's shape), imperative, 72 characters at most; `type(scope): summary` is accepted (types: feat, fix, docs, chore, refactor, perf, test, build, ci, revert). Breaking: a `BREAKING CHANGE:` footer. No AI attribution trailers on new commits. Full rules and the checker: section 19. |
 | Workflow files | `ci.yml`, `release.yml`, `docs.yml`, `pages.yml`; the workflow `name:` equals the file stem. Reusable ones live only in this repository. |
 | Topics | lowercase kebab, at most 20, one role topic. |
 | Labels | section 5. |
