@@ -498,11 +498,10 @@ export function fixHtml(text: string, e: string, cfg: Config): string {
   const selfClose = attrs.endsWith("/") ? "/" : "";
   const base = selfClose ? attrs.slice(0, -1) : attrs;
   let add = "";
-  let langValue = lang ? (lang[1] ?? lang[2] ?? lang[4]) : cfg.default_lang;
+  const langValue = lang ? (lang[1] ?? lang[2] ?? lang[4]) : cfg.default_lang;
   if (!lang) add += ` lang="${cfg.default_lang}"`;
   if (!/\bdir\s*=/i.test(attrs)) {
-    if (langValue === undefined || dynamic(langValue)) langValue = undefined;
-    else add += ` dir="${langValue === "" ? "auto" : directionOf(langValue)}"`;
+    if (langValue !== undefined && !dynamic(langValue)) add += ` dir="${langValue === "" ? "auto" : directionOf(langValue)}"`;
   }
   attrs = base + add + selfClose;
   let out = text.slice(0, root.index) + `<html${attrs}>` + text.slice(root.index + root[0].length);
