@@ -289,6 +289,13 @@ dependabot_security_updates = false
 dependency_graph = true
 code_scanning_default_setup = "not_set"   # huge upstream trees; scan the upstream, not the mirror
 
+# Originals made mostly of vendored upstream trees (aggregated monorepos). Dependabot cannot update a vendored manifest
+# (exclude-paths covers version updates only), so its security-update runs fail there: these repositories take the
+# forks profile and configuration (alerts on, security updates off). Extend by topic: aphrody-vendored.
+[security.vendored]
+repos = ["aphrody-labs/browser"]
+topic = "aphrody-vendored"
+
 # Org security configurations (POST /orgs/{org}/code-security/configurations, then attach). id 17 "GitHub recommended" stays untouched.
 [security.configurations.originals]
 name = "aphrody-originals"

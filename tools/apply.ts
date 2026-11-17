@@ -170,6 +170,8 @@ function roleOf(r: Repo): string {
 }
 const langTopic = (l: string | null): string | undefined => l ? l.toLowerCase().replace(/\+\+/g, "pp").replace(/#/g, "sharp").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : undefined;
 const gatedSet = new Set<string>(std.rulesets.gated_repos.map((s: string) => s.toLowerCase()));
+const vendoredSet = new Set<string>((std.security.vendored?.repos ?? []).map((s: string) => s.toLowerCase()));
+const isVendored = (r: Repo): boolean => vendoredSet.has(r.full_name.toLowerCase()) || (r.topics ?? []).includes(std.security.vendored?.topic);
 
 // ====================================================================================================
 // org: Actions workflow permissions, security configurations and their defaults
@@ -336,6 +338,7 @@ async function stepSettings(): Promise<void> {
     const lt = langTopic(cur.language);
     if (lt && topicOk.test(lt)) topics.add(lt);
     if (gatedSet.has(r.full_name.toLowerCase())) topics.add(std.rulesets.gated_topic);
+    if (vendoredSet.has(r.full_name.toLowerCase())) topics.add(std.security.vendored.topic);
     const next = [...topics].filter((t) => topicOk.test(t)).sort().slice(0, 20);
     const have = [...(cur.topics ?? [])].sort();
     if (next.join() !== have.join()) await change(r.full_name, "settings", `topics ${have.length}->${next.length}: ${next.join(",")}`, "PUT", `/repos/${r.full_name}/topics`, { names: next });
@@ -398,7 +401,7 @@ async function attach(key: "originals" | "forks", repos: Repo[]): Promise<void> 
 
 async function perRepoSecurity(r: Repo): Promise<void> {
   const pub = r.visibility === "public";
-  const want = pub ? std.security.originals_public : std.security.originals_private;
+  const want = isVendored(r) ? std.security.forks : pub ? std.security.originals_public : std.security.originals_private;
   const cur = (await api("GET", `/repos/${r.full_name}`)).data;
   const sa = cur.security_and_analysis ?? {};
   const body: Json = {};
@@ -414,6 +417,9 @@ async function perRepoSecurity(r: Repo): Promise<void> {
   if (want.dependabot_security_updates) {
     const v = await api("GET", `/repos/${r.full_name}/automated-security-fixes`);
     if (!v.data?.enabled) await change(r.full_name, "security", "enable Dependabot security updates", "PUT", `/repos/${r.full_name}/automated-security-fixes`);
+  } else if (want.dependabot_security_updates === false) {
+    const v = await api("GET", `/repos/${r.full_name}/automated-security-fixes`);
+    if (v.data?.enabled) await change(r.full_name, "security", "disable Dependabot security updates (vendored trees)", "DELETE", `/repos/${r.full_name}/automated-security-fixes`);
   }
   if (pub && want.private_vulnerability_reporting) {
     const v = await api("GET", `/repos/${r.full_name}/private-vulnerability-reporting`);
@@ -431,7 +437,9 @@ async function perRepoSecurity(r: Repo): Promise<void> {
 
 async function stepSecurity(): Promise<void> {
   const pub = originals.filter((r) => r.visibility === "public" && !isDone(r));
-  await attach("originals", pub);
+  await attach("originals", pub.filter((r) => !isVendored(r)));
+  const vendored = pub.filter(isVendored);
+  if (vendored.length) await attach("forks", vendored);
   if (APPLY) await sleep(20_000);   // configuration attach is asynchronous
   await pool(originals.filter((r) => !isDone(r)), 4, perRepoSecurity);
 }
