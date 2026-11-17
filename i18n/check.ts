@@ -1,12 +1,12 @@
 #!/usr/bin/env bun
 // i18n checker for Aphrody repositories. Rules: i18n.toml, rationale: I18N.md.
 //
-//   bun i18n/check.ts [dir...] [--fix] [--json out.json] [--fail-on error|warn|none] [--quiet]
+//   bun i18n/check.ts [dir...] [--fix [--hygiene-only]] [--json out.json] [--fail-on error|warn|none] [--quiet]
 //   bun i18n/check.ts rules
 //
 // Files come from `git ls-files` (tracked plus untracked-not-ignored for checks, tracked only for --fix; no submodule contents) or a directory walk outside git.
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { basename, extname, join, relative, resolve } from "node:path";
+import { chmodSync, existsSync, lstatSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { basename, dirname, extname, join, relative, resolve, sep } from "node:path";
 
 export type Severity = "error" | "warn";
 export interface Finding {
@@ -440,8 +440,9 @@ async function readPool<T>(items: string[], size: number, fn: (item: string) => 
 export async function mergeRepoConfig(spec: Spec, root: string): Promise<Spec> {
   const path = join(root, "i18n.toml");
   if (!existsSync(path)) return spec;
-  const local = (Bun.TOML.parse(await Bun.file(path).text()) as { config?: Partial<Config> }).config ?? {};
-  return { ...spec, config: { ...spec.config, ...local } };
+  const { exclude_extra = [], exclude_content_extra = [], ...local } = (Bun.TOML.parse(await Bun.file(path).text()) as { config?: Partial<Config> & { exclude_extra?: string[]; exclude_content_extra?: string[] } }).config ?? {};
+  const merged = { ...spec.config, ...local };
+  return { ...spec, config: { ...merged, exclude: [...merged.exclude, ...exclude_extra], exclude_content: [...merged.exclude_content, ...exclude_content_extra] } };
 }
 
 export async function checkRepo(rootArg: string, baseSpec?: Spec): Promise<RepoResult> {
@@ -542,31 +543,69 @@ export function fixGitattributes(text: string | null): string {
   return `${GITATTRIBUTES_LINE}\n${hasBat ? "" : GITATTRIBUTES_EXTRA}${keep.join("\n")}`.replace(/\n*$/, "\n");
 }
 
-export async function fixRepo(rootArg: string, baseSpec?: Spec): Promise<string[]> {
+// Writes rel under root only when neither the file nor its directory leaves the root (symlink, junction):
+// temp file in the same directory, then rename. Returns false and writes nothing otherwise.
+export function safeWrite(root: string, rel: string, data: Uint8Array | string): boolean {
+  const path = join(root, rel);
+  let mode: number | undefined;
+  try {
+    if (lstatSync(path).isSymbolicLink()) return false;
+    mode = statSync(path).mode;
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== "ENOENT") return false;
+  }
+  try {
+    const realRoot = realpathSync(root);
+    const realDir = realpathSync(dirname(path));
+    if (realDir !== realRoot && !realDir.startsWith(realRoot + sep)) return false;
+    const tmp = join(realDir, `.${basename(path)}.i18n-${process.pid}.tmp`);
+    try {
+      writeFileSync(tmp, data);
+      if (mode !== undefined) chmodSync(tmp, mode & 0o7777);
+      renameSync(tmp, join(realDir, basename(path)));
+    } catch (e) {
+      rmSync(tmp, { force: true });
+      throw e;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Paths with uncommitted changes belong to someone else's work in progress; fixes leave them alone.
+function dirtyPaths(root: string): Set<string> {
+  if (!isGitRoot(root)) return new Set();
+  const out = git(root, ["status", "--porcelain", "-z", "--untracked-files=no"]).stdout.toString("utf8").split("\0");
+  return new Set(out.filter((r) => r.length > 3).map((r) => r.slice(3)));
+}
+
+export async function fixRepo(rootArg: string, baseSpec?: Spec, hygieneOnly = false): Promise<string[]> {
   const root = resolve(rootArg);
   const spec = await mergeRepoConfig(baseSpec ?? (await loadSpec()), root);
   const ctx = makeCtx(spec);
   const changed: string[] = [];
   const all = listFiles(root);
-  const files = all.filter((p) => !matchAny(ctx.exclude, p) && !ctx.binary.has(ext(p)));
+  const dirty = dirtyPaths(root);
+  const files = hygieneOnly ? [] : all.filter((p) => !matchAny(ctx.exclude, p) && !ctx.binary.has(ext(p)) && !dirty.has(p));
   await readPool(files, 64, async (rel) => {
     const file = Bun.file(join(root, rel));
     if (file.size > spec.config.max_bytes || file.size === 0) return;
     const bytes = new Uint8Array(await file.arrayBuffer());
     const next = fixBytes(rel, bytes, ctx);
     if (next) {
-      await Bun.write(join(root, rel), next);
-      changed.push(rel);
+      if (safeWrite(root, rel, next)) changed.push(rel);
+      else console.error(`skipped (symlink or outside the repository): ${rel}`);
     }
   });
   const rewrite = async (rel: string, make: (t: string | null) => string) => {
+    if (dirty.has(rel)) return;
     const p = join(root, rel);
-    const prev = existsSync(p) ? await Bun.file(p).text() : null;
+    const prev = existsSync(p) && !lstatSync(p).isSymbolicLink() ? await Bun.file(p).text() : null;
     const next = make(prev);
-    if (next !== prev) {
-      await Bun.write(p, next);
-      changed.push(rel);
-    }
+    if (next === prev) return;
+    if (safeWrite(root, rel, next)) changed.push(rel);
+    else console.error(`skipped (symlink or outside the repository): ${rel}`);
   };
   const ec = editorconfigFindings(root, all, spec, ctx).filter((x) => x.file === ".editorconfig");
   if (ec.length) await rewrite(".editorconfig", fixEditorconfig);
@@ -597,13 +636,14 @@ export async function main(argv: string[]): Promise<number> {
   const jsonOut = flag("--json");
   const fix = argv.includes("--fix");
   const quiet = argv.includes("--quiet");
+  const hygieneOnly = argv.includes("--hygiene-only");
   const valued = new Set(["--json", "--fail-on"]);
   const dirs = argv.filter((a, i) => !a.startsWith("--") && !valued.has(argv[i - 1]));
   const roots = dirs.length ? dirs : ["."];
   const results: (RepoResult & { before?: Record<string, number> })[] = [];
   for (const root of roots) {
     const before = fix ? await checkRepo(root, spec) : undefined;
-    const fixed = fix ? await fixRepo(root, spec) : undefined;
+    const fixed = fix ? await fixRepo(root, spec, hygieneOnly) : undefined;
     const res: RepoResult & { before?: Record<string, number> } = await checkRepo(root, spec);
     if (fixed) res.fixed = fixed;
     if (before) res.before = before.counts;

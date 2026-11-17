@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { checkRepo, directionOf, fixEditorconfig, fixGitattributes, fixHtml, fixRepo, loadSpec, main, wellFormedLang } from "./check";
+import { checkRepo, directionOf, fixEditorconfig, fixGitattributes, fixHtml, fixRepo, loadSpec, main, safeWrite, wellFormedLang } from "./check";
 
 let dir: string;
 beforeEach(() => {
@@ -190,6 +190,46 @@ describe("fix", () => {
     expect(fixEditorconfig("[*.md]\nx = y\n")).toContain("[*]\ncharset = utf-8");
     expect(fixGitattributes("* text=auto\n*.png binary\n")).toBe("* text=auto eol=lf\n*.bat text eol=crlf\n*.cmd text eol=crlf\n*.png binary\n");
     expect(fixHtml("<html><head></head></html>", "html", { default_lang: "fr" } as never)).toContain('<html lang="fr" dir="ltr">');
+  });
+});
+
+describe("safe write", () => {
+  const link = (target: string, path: string, type: "file" | "dir") => {
+    try {
+      symlinkSync(target, path, type === "dir" && process.platform === "win32" ? "junction" : type);
+      return true;
+    } catch {
+      return false; // creating links needs a privilege on Windows
+    }
+  };
+  test("writes in place, keeps the mode, leaves no temp file", () => {
+    put("a.txt", "old");
+    expect(safeWrite(dir, "a.txt", "new")).toBe(true);
+    expect(readFileSync(join(dir, "a.txt"), "utf8")).toBe("new");
+    expect(safeWrite(dir, "sub/b.txt", "x")).toBe(false); // missing directory
+    expect(existsSync(join(dir, ".a.txt.i18n-" + process.pid + ".tmp"))).toBe(false);
+  });
+  test("a symlinked file is not written through", async () => {
+    const outside = mkdtempSync(join(tmpdir(), "i18n-outside-"));
+    try {
+      writeFileSync(join(outside, "target.txt"), "keep");
+      if (!link(join(outside, "target.txt"), join(dir, ".editorconfig"), "file")) return;
+      expect(safeWrite(dir, ".editorconfig", "x")).toBe(false);
+      await fixRepo(dir);
+      expect(readFileSync(join(outside, "target.txt"), "utf8")).toBe("keep");
+    } finally {
+      rmSync(outside, { recursive: true, force: true });
+    }
+  });
+  test("a symlinked directory cannot redirect a write outside the root", () => {
+    const outside = mkdtempSync(join(tmpdir(), "i18n-outside-"));
+    try {
+      if (!link(outside, join(dir, "linked"), "dir")) return;
+      expect(safeWrite(dir, "linked/x.txt", "x")).toBe(false);
+      expect(existsSync(join(outside, "x.txt"))).toBe(false);
+    } finally {
+      rmSync(outside, { recursive: true, force: true });
+    }
   });
 });
 

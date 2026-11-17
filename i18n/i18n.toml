@@ -1,5 +1,6 @@
 # Machine-readable configuration of i18n/check.ts. Rules and their rationale: I18N.md.
-# A repository overrides any key of [config] with an i18n.toml at its root.
+# A repository overrides any key of [config] with an i18n.toml at its root;
+# exclude_extra and exclude_content_extra append to the lists below (vendored trees, deliberate fixtures).
 
 [config]
 default_lang = "en"        # source language baseline; override per project
