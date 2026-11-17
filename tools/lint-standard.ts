@@ -133,9 +133,25 @@ for await (const rel of new Glob(".github/ISSUE_TEMPLATE/*.yml").scan({ cwd: roo
   for (const l of doc.labels ?? []) if (!labelNames.has(l)) err(`${rel}: label ${l} is not in standard.toml`);
 }
 
+// --- code standard (section 19) --------------------------------------------------------------
+const cs = std.code_style ?? {};
+for (const k of ["doc", "sources", "conflicts"]) {
+  if (!cs[k]) err(`standard.toml: code_style.${k} is missing`);
+  else if (!(await Bun.file(join(root, cs[k])).exists())) err(`code_style.${k}: ${cs[k]} does not exist`);
+}
+for (const k of ["commit_subject_max", "commit_body_max", "commit_body_wrap"]) if (!Number.isInteger(cs[k]) || cs[k] < 20) err(`standard.toml: code_style.${k} must be an integer`);
+for (const t of std.files?.templates ?? []) {
+  if (!t.source || !t.dest || !["copy", "merge"].includes(t.mode)) err(`files.templates: needs source, dest and mode copy|merge (${JSON.stringify(t)})`);
+  else if (!(await Bun.file(join(root, t.source)).exists())) err(`files.templates: ${t.source} does not exist`);
+}
+for (const f of std.files?.original_recommended ?? []) {
+  const t = (std.files?.templates ?? []).find((x: Toml) => x.dest === f && x.mode === "copy");
+  if ((f === ".gitmessage" || f === "REVIEW.md") && !t) warn(`files.original_recommended: ${f} has no [[files.templates]] copy entry`);
+}
+
 // --- required files ---------------------------------------------------------------------------
 for (const f of std.files?.org_fallback ?? []) if (!(await Bun.file(join(root, f)).exists())) err(`org fallback file missing: ${f}`);
-for (const f of ["STANDARD.md", "profile/README.md", "profile/generate.ts"]) if (!(await Bun.file(join(root, f)).exists())) err(`missing ${f}`);
+for (const f of ["STANDARD.md", "profile/README.md", "profile/generate.ts", "docs/standards/commit-format.md"]) if (!(await Bun.file(join(root, f)).exists())) err(`missing ${f}`);
 
 for (const w of warnings) console.warn(`warning: ${w}`);
 for (const e of errors) console.error(`error: ${e}`);

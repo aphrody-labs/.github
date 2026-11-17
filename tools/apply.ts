@@ -600,7 +600,12 @@ async function stepNeeds(): Promise<void> {
     for (const n of std.rulesets.tiers.solo) if (!rnames.includes(n)) needs.push(`ruleset ${n}`);
     const entries = await rootEntries(r);
     for (const f of std.files.original_required) if (!f.includes("/") && !entries.includes(f) && !(f === "README.md" && entries.some((e) => /^readme/i.test(e)))) needs.push(`file ${f}`);
-    rec(r.full_name, "needs", "info", needs.length ? `would need: ${needs.join(", ")}` : "meets the standard");
+    const suggests: string[] = [];
+    for (const t of std.files.templates ?? []) {
+      if (t.mode !== "copy" || (t.when && !entries.includes(t.when)) || t.dest.includes("/")) continue;
+      if (!entries.includes(t.dest)) suggests.push(t.dest);
+    }
+    rec(r.full_name, "needs", "info", (needs.length ? `would need: ${needs.join(", ")}` : "meets the standard") + (suggests.length ? `; suggested from templates/: ${suggests.join(", ")}` : ""));
   }
   rec("-", "needs", "info", `frozen domains (inventory only, never changed): ${frozen.join(", ")}`);
 }
