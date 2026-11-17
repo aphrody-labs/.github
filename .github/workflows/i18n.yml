@@ -1,0 +1,22 @@
+name: i18n
+
+# Tests the checker, then checks this repository with it.
+on:
+  push:
+    branches: [main]
+    paths: ["i18n/**", ".editorconfig", ".gitattributes", ".github/workflows/i18n.yml"]
+  pull_request:
+    paths: ["i18n/**", ".editorconfig", ".gitattributes", ".github/workflows/i18n.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  i18n:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - run: bun test i18n
+      - run: bun i18n/check.ts .
