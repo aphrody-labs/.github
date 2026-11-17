@@ -294,6 +294,7 @@ export function checkFiles(files: Files, decl: Decl, scheme: Scheme): Finding[] 
           const m = /^([\w.-]+)\/([\w.-]+)(\/[^@]*)?@(.+)$/.exec(u[1]);
           if (m && orgs.includes(m[1]) && !isSelfSlug(m[1], m[2], decl)) {
             if (SHA.test(m[4])) add("I070", "info", file, `uses ${m[1]}/${m[2]} pinned to a SHA: allowed, keep the job optional (continue-on-error) so it never blocks`, L);
+            else if (m[2] === ".github") add("I071", "warn", file, `uses the org reusable workflow ${m[1]}/${m[2]}${m[3] ?? ""}@${m[4]}: a moving ref couples every repository's CI to one commit; pin a SHA (Dependabot keeps it current)`, L);
             else add("I071", "error", file, `uses ${m[1]}/${m[2]}${m[3] ?? ""}@${m[4]}: a branch or tag moves under you; pin a SHA`, L);
           }
         }

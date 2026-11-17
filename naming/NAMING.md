@@ -108,7 +108,7 @@ Severity: error = a clean clone or another repository's state decides the result
 | I060 | image of another repository: pin a digest and keep a fallback | warn |
 | I061 | Cloudflare service binding to another repository's Worker | error |
 | I070 | workflow `uses` of another repository pinned to a SHA: allowed, keep it optional | info |
-| I071 | workflow `uses` of another repository at a branch or tag | error |
+| I071 | workflow `uses` of another repository at a branch or tag (warn for the org's own reusable workflows in `.github`, which STANDARD.md calls at `@main`: pin a SHA to be fully independent) | error, warn |
 | I072 | CI checks out another repository (`repository:`) | error |
 | I073 | CI triggers a workflow or dispatch of another repository | error |
 | I080 | a file of another repository fetched at a branch (`raw.githubusercontent.com/.../main/`) | error |

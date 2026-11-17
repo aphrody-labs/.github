@@ -102,6 +102,7 @@ describe("independence", () => {
       ".github/workflows/ci.yml": [
         "jobs:", "  a:", "    steps:",
         "      - uses: aphrody-labs/.github/.github/workflows/ci.yml@main",
+        "      - uses: aphrody-labs/nie/.github/workflows/ci.yml@main",
         `      - uses: aphrody-labs/nie/.github/actions/x@${sha}`,
         "      - uses: actions/checkout@v4",
         "      - uses: actions/checkout@v4",
@@ -112,6 +113,7 @@ describe("independence", () => {
       ].join("\n"),
     });
     expect(rules(f, "error").sort()).toEqual(["I071", "I072", "I073"]);
+    expect(f.filter(x => x.rule === "I071").map(x => x.severity).sort()).toEqual(["error", "warn"]);
     expect(rules(f, "info")).toContain("I070");
   });
   test("sibling checkouts", () => {
