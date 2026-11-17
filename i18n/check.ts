@@ -463,7 +463,7 @@ export async function checkRepo(rootArg: string, baseSpec?: Spec): Promise<RepoR
     findings.push(...s.findings);
     uiLiterals += s.uiLiterals;
   }
-  findings.push(...editorconfigFindings(root, all, spec, ctx), ...gitattributesFindings(root, spec), ...commitEncodingFindings(root, spec));
+  findings.push(...editorconfigFindings(root, all.filter((p) => !matchAny(ctx.exclude, p)), spec, ctx), ...gitattributesFindings(root, spec), ...commitEncodingFindings(root, spec));
   if (uiLiterals > 0 && !manifestHasI18n(root, all, spec))
     findings.push({ rule: "no-i18n-catalog", severity: spec.rules["no-i18n-catalog"].severity, file: ".", message: `${uiLiterals} UI literal(s), no i18n library or catalog found` });
   const counts: Record<string, number> = {};
@@ -607,7 +607,7 @@ export async function fixRepo(rootArg: string, baseSpec?: Spec, hygieneOnly = fa
     if (safeWrite(root, rel, next)) changed.push(rel);
     else console.error(`skipped (symlink or outside the repository): ${rel}`);
   };
-  const ec = editorconfigFindings(root, all, spec, ctx).filter((x) => x.file === ".editorconfig");
+  const ec = editorconfigFindings(root, all.filter((p) => !matchAny(ctx.exclude, p)), spec, ctx).filter((x) => x.file === ".editorconfig");
   if (ec.length) await rewrite(".editorconfig", fixEditorconfig);
   if (gitattributesFindings(root, spec).length) await rewrite(".gitattributes", fixGitattributes);
   return changed.sort();

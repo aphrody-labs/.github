@@ -68,11 +68,12 @@ EOF_LIST
 one() {
   repo="$1"; name="\${repo//\\//__}"
   if [ ! -d "$name/.git" ]; then
-    git -c http.extraheader="Authorization: Bearer $TOKEN" clone -q --depth 1 --no-recurse-submodules "https://github.com/$repo.git" "$name" 2>/dev/null || { echo "$repo clone-failed" >> _out/_failed; return; }
+    git -c http.extraheader="Authorization: Basic $AUTH" clone -q --depth 1 --no-recurse-submodules "https://github.com/$repo.git" "$name" 2>/dev/null || { echo "$repo clone-failed" >> _out/_failed; return; }
   fi
   bun _tool/check.ts "$PWD/$name" --quiet --fail-on none --json "_out/$name.json" 2>/dev/null || echo "$repo check-failed" >> _out/_failed
 }
-export -f one; export TOKEN
+AUTH=$(printf "x-access-token:%s" "$TOKEN" | base64 -w0)
+export -f one; export AUTH
 rm -f _out/_failed
 xargs -a _list -P ${jobs} -I{} bash -c 'one {}' < /dev/null
 bun -e '
