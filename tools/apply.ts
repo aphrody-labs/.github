@@ -8,7 +8,7 @@
 //   bun tools/apply.ts --apply --only=labels,rulesets
 //   bun tools/apply.ts --repo=aphrody-labs/r2b[,owner/name]   restrict per-repo steps
 //   bun tools/apply.ts --out=ledger.jsonl      where the change ledger goes (default: $TMPDIR/apply-<timestamp>.jsonl)
-// Steps (run in this order): org, archive, settings, labels, security, rulesets, features, readme, forks, needs
+// Steps (run in this order): org, archive, settings, labels, security, rulesets, features, readme, forks, needs, templates (report only)
 // A dry run directly after an apply must print zero "would" lines: that is the verification.
 // Secrets are never printed: the token comes from GH_TOKEN, GITHUB_TOKEN or `gh auth token`.
 import { tmpdir } from "node:os";
@@ -27,7 +27,7 @@ for (const a of process.argv.slice(2)) {
   if (m) args.set(m[1]!, m[2] ?? "true");
 }
 const APPLY = args.has("apply");
-const ALL_STEPS = ["org", "archive", "settings", "labels", "security", "rulesets", "features", "readme", "forks", "needs"];
+const ALL_STEPS = ["org", "archive", "settings", "labels", "security", "rulesets", "features", "readme", "forks", "needs", "templates"];
 const STEPS = new Set((args.get("only") ?? ALL_STEPS.join(",")).split(","));
 const ONLY_REPOS = args.get("repo")?.split(",");
 const OUT = args.get("out") ?? join(tmpdir(), `apply-${new Date().toISOString().replace(/[:.]/g, "-")}.jsonl`);
@@ -610,8 +610,23 @@ async function stepNeeds(): Promise<void> {
   rec("-", "needs", "info", `frozen domains (inventory only, never changed): ${frozen.join(", ")}`);
 }
 
+// ====================================================================================================
+// templates: report only. Which original would receive which root file copied from templates/ (files.templates, mode copy).
+// Never writes, with or without --apply: copying waits until each repository's owner session is free.
+// ====================================================================================================
+async function stepTemplates(): Promise<void> {
+  const tpls = ((std.files.templates ?? []) as Json[]).filter((x) => x.mode === "copy" && !String(x.dest).includes("/"));
+  const targets = [...originals, ...live.filter((r) => isSkipped(r) && !r.fork)];
+  const seen = new Set<string>();
+  await pool(targets.filter((r) => !seen.has(r.full_name) && seen.add(r.full_name)), 4, async (r) => {
+    const entries = await rootEntries(r);
+    const missing = tpls.filter((x) => (!x.when || entries.includes(x.when)) && !entries.includes(x.dest)).map((x) => `${x.source} -> ${x.dest}`);
+    rec(r.full_name, "templates", "info", missing.length ? `would receive: ${missing.join(", ")}${isSkipped(r) ? " (skipped repository, owner session decides)" : ""}` : "has every template copy");
+  });
+}
+
 // --- run ---------------------------------------------------------------------------------------------
-const table: Record<string, () => Promise<void>> = { org: stepOrg, archive: stepArchive, settings: stepSettings, labels: stepLabels, security: stepSecurity, rulesets: stepRulesets, features: stepFeatures, readme: stepReadme, forks: stepForks, needs: stepNeeds };
+const table: Record<string, () => Promise<void>> = { org: stepOrg, archive: stepArchive, settings: stepSettings, labels: stepLabels, security: stepSecurity, rulesets: stepRulesets, features: stepFeatures, readme: stepReadme, forks: stepForks, needs: stepNeeds, templates: stepTemplates };
 for (const s of ALL_STEPS) {
   if (!STEPS.has(s)) continue;
   console.log(`\n== ${s} (rate remaining ${remaining})`);
