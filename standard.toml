@@ -24,10 +24,10 @@ skip_repos = [
   "aphrody-labs/legacy",        # preserved archive, workflows disabled
   "rose-griffon/rosegriffon",
 ]
-# Checkouts that other agents are editing.
+# Checkouts that other agents are editing, relative to WORKSPACE_ROOT (the directory holding the checkouts); "~/.claude" is the user's Claude config.
 skip_paths = [
-  'C:\src\aphrody', 'C:\src\nie', 'C:\src\rosegriffon', 'C:\src\ai-os',
-  'C:\src\ay\packages\org-mirror', 'C:\Users\aphro\.claude',
+  "aphrody", "nie", "rosegriffon", "ai-os",
+  "ay/packages/org-mirror", "~/.claude",
 ]
 # Never change DNS records, zones or routes of these. Inventory only until the owner decides the roles.
 frozen_domains = ["aphrody.com", "aphrody.app"]
