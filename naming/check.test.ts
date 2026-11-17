@@ -68,7 +68,7 @@ describe("names", () => {
     expect(rules(run({}, { id: "x", kind: "nope", org: "aphrody-dev" }), "error")).toContain("N001");
   });
   test("env vars owned by another repository", () => {
-    const f = run({ "src/a.ts": "const a = process.env.NIE_CDN; const b = process.env.AY_HOME; const c = process.env.GITHUB_TOKEN; const d = process.env.SOMEVENDOR_KEY;" });
+    const f = run({ "src/a.ts": "const o = process.env.OPEN_AI_API_KEY; const a = process.env.NIE_CDN; const b = process.env.AY_HOME; const c = process.env.GITHUB_TOKEN; const d = process.env.SOMEVENDOR_KEY;" });
     expect(f.map(x => x.rule)).toEqual(["I120"]);
     expect(f[0].message).toContain("NIE_CDN");
   });

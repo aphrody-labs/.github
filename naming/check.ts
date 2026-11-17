@@ -28,7 +28,7 @@ export interface Scheme {
   meta: { version: string; orgs: string[] };
   orgs: Record<string, { npm_scope: string; ghcr: string }>;
   kinds: Record<string, { orgs: string[]; pattern: string; prefix: string; publishes: string[] }>;
-  env: { neutral: string[] };
+  env: { neutral: string[]; generic?: string[] };
   stages: { names: string[] };
   repos: Record<string, string>;
   families?: Record<string, { root: string; members: string[] }>;
@@ -379,7 +379,7 @@ export function checkFiles(files: Files, decl: Decl, scheme: Scheme): Finding[] 
       const owner = new Map<string, string>();
       for (const slug of Object.keys(scheme.repos)) {
         const id = slug.split("/")[1];
-        if (id.startsWith(".") || id === decl.id || id === (decl.repo ?? decl.id)) continue;
+        if (id.startsWith(".") || id === decl.id || id === (decl.repo ?? decl.id) || (scheme.env.generic ?? []).includes(id)) continue;
         owner.set(envPrefixOf(id) + "_", id);
       }
       for (const m of text.matchAll(/(?:process\.env\.|Bun\.env\.|process\.env\[["']|env::var(?:_os)?\(\s*["']|os\.environ(?:\.get)?[\[(]\s*["']|os\.getenv\(\s*["']|getenv\(\s*["']|GetEnvironmentVariable\(\s*["']|os\.Getenv\(\s*["'])([A-Z][A-Z0-9_]+)/g)) {

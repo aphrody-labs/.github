@@ -56,6 +56,8 @@ names = ["prod", "stg", "dev"]
 
 # Environment variable prefixes that belong to somebody else and never count as coupling: platform, toolchain and upstream runtimes.
 [env]
+# Repository ids that are also ordinary words: their prefix (OPEN_AI_API_KEY, AUTO_UPDATE) is never taken as ownership.
+generic = ["open", "auto", "browser", "claude", "legacy", "bun"]
 neutral = [
   "PATH", "HOME", "USER", "USERNAME", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "TEMP", "TMP", "TMPDIR", "SHELL", "TERM", "LANG", "LC",
   "PWD", "OLDPWD", "HOSTNAME", "CI", "NODE", "NPM", "BUN", "CARGO", "RUST", "RUSTC", "RUSTUP", "RUSTFLAGS", "GITHUB", "GH", "GIT", "RUNNER",
