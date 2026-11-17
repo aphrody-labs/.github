@@ -35,7 +35,7 @@ for repo in ${repos.join(" ")}; do
   cd "$name" || continue
   git fetch -q --depth 1 origin 2>/dev/null; git checkout -q main 2>/dev/null || true
   bun ../_tool/check.ts "$PWD" --fix --quiet --fail-on none --json "../_out/after-$name.json" < /dev/null
-  bun -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync(process.argv[1],"utf8"))[0];fs.writeFileSync("../_out/paths.txt",(r.fixed||[]).join("\\0"));fs.writeFileSync("../_out/fixed-"+process.argv[2]+".json",JSON.stringify(r.fixed||[]))' "../_out/after-$name.json" "$name"
+  bun -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync(process.argv[1],"utf8"))[0];fs.writeFileSync("../_out/paths.txt",(r.fixed||[]).join("\\0"));(r.fixed||[]).length&&fs.writeFileSync("../_out/fixed-"+process.argv[2]+".json",JSON.stringify(r.fixed))' "../_out/after-$name.json" "$name"
   if [ -s ../_out/paths.txt ]; then
     git add --pathspec-from-file=../_out/paths.txt --pathspec-file-nul
     git -c user.name=${JSON.stringify(gitCfg("user.name"))} -c user.email=${JSON.stringify(gitCfg("user.email"))} commit -q -m ${JSON.stringify(message)} --pathspec-from-file=../_out/paths.txt --pathspec-file-nul
