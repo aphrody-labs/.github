@@ -80,28 +80,28 @@ prefix = "own-id"
 [kinds.sdk]
 orgs = ["aphrody-dev"]
 name = "short product id, 2 to 12 characters"
-pattern = "^[a-z][a-z0-9]{1,11}$"
+pattern = "^[a-z][a-z0-9-]{1,11}$"
 publishes = ["crates", "npm", "pypi", "nuget", "go", "ghcr"]
 prefix = "own-id"
 
 [kinds.unix]
 orgs = ["aphrody-dev"]
 name = "short product id (anu)"
-pattern = "^[a-z][a-z0-9]{1,11}$"
+pattern = "^[a-z][a-z0-9-]{1,11}$"
 publishes = ["crates", "npm", "ghcr"]
 prefix = "own-id"
 
 [kinds.android]
 orgs = ["aphrody-dev"]
 name = "short product id (aydroid)"
-pattern = "^[a-z][a-z0-9]{1,11}$"
+pattern = "^[a-z][a-z0-9-]{1,11}$"
 publishes = ["ghcr"]
 prefix = "own-id"
 
 [kinds.nt]
 orgs = ["aphrody-dev"]
 name = "short product id (aynt)"
-pattern = "^[a-z][a-z0-9]{1,11}$"
+pattern = "^[a-z][a-z0-9-]{1,11}$"
 publishes = ["ghcr"]
 prefix = "own-id"
 
@@ -115,7 +115,7 @@ prefix = "own-id"
 [kinds.tool]
 orgs = ["aphrody-dev", "aphrody-labs"]
 name = "short product id of a single-binary tool (aysh)"
-pattern = "^[a-z][a-z0-9]{1,11}$"
+pattern = "^[a-z][a-z0-9-]{1,11}$"
 publishes = ["crates", "npm", "ghcr"]
 prefix = "own-id"
 
@@ -177,8 +177,8 @@ prefix = "family"
 
 [kinds.config]
 orgs = ["aphrody-labs", "aphrody-dev", "rose-griffon"]
-name = ".github, claude, or <id>-config"
-pattern = "^(\\.github|claude|[a-z][a-z0-9]*(-[a-z0-9]+)*-config)$"
+name = ".github, claude, gemini, <tool>-local (private owner data), or <id>-config"
+pattern = "^(\\.github|claude|gemini|(claude|gemini)-local|aphrody-dev|[a-z][a-z0-9]*(-[a-z0-9]+)*-config)$"
 publishes = ["npm"]
 prefix = "own-id"
 
@@ -230,6 +230,8 @@ members = ["yolo-ai", "yolo-backend", "yolo-cloudflare", "yolo-cross", "yolo-eng
 "aphrody-dev/aydroid" = "android"
 "aphrody-dev/aynt" = "nt"
 "aphrody-dev/aysh" = "tool"
+"aphrody-dev/ay-tools" = "tool"
+"aphrody-dev/ayvpn" = "tool"
 "aphrody-dev/aphrody-dev" = "config"
 "aphrody-labs/bun" = "runtime"
 "aphrody-labs/nie" = "game"
@@ -271,6 +273,44 @@ members = ["yolo-ai", "yolo-backend", "yolo-cloudflare", "yolo-cross", "yolo-eng
 "aphrody-labs/cours-ia" = "research"
 "aphrody-labs/fairy-tail-archive" = "research"
 "aphrody-labs/legacy" = "archive"
+"aphrody-labs/rust-mono" = "tool"
+"aphrody-labs/gemini" = "config"
+"aphrody-labs/gemini-local" = "config"
+"aphrody-labs/claude-local" = "config"
+"aphrody-labs/depot_tools" = "mirror"
+"aphrody-labs/wayland-c" = "mirror"
+"aphrody-labs/steam-runtime-tools" = "mirror"
+"aphrody-labs/steamos-manager" = "mirror"
+"aphrody-labs/zig" = "mirror"
+"aphrody-labs/binutils-gdb" = "mirror"
+"aphrody-labs/dash" = "mirror"
+"aphrody-labs/readline" = "mirror"
+"aphrody-labs/make" = "mirror"
+"aphrody-labs/gnu-findutils" = "mirror"
+"aphrody-labs/gnu-sed" = "mirror"
+"aphrody-labs/gawk" = "mirror"
+"aphrody-labs/bash" = "mirror"
+"aphrody-labs/gaming" = "archive"
+"aphrody-labs/dioxus-monorepo" = "archive"
+"aphrody-labs/steam-depot" = "archive"
+"aphrody-labs/bun-distribution" = "archive"
+"aphrody-labs/bun-os" = "archive"
+"aphrody-labs/nt" = "archive"
+"aphrody-labs/rust-stack" = "archive"
+"aphrody-labs/ring3-agent" = "archive"
+"aphrody-labs/bench" = "archive"
+"aphrody-labs/gamescope-rs" = "archive"
+"aphrody-labs/wayland" = "archive"
+"aphrody-labs/infra" = "archive"
+"aphrody-labs/wck" = "archive"
+"aphrody-labs/ai-os" = "archive"
+"aphrody-labs/unix" = "archive"
+"aphrody-labs/xtask" = "archive"
+"aphrody-labs/env-kit" = "archive"
+"aphrody-labs/depot" = "archive"
+"aphrody-labs/yolo-bun" = "archive"
+"aphrody-labs/carbon" = "archive"
+"aphrody-labs/yolo-hub" = "archive"
 "rose-griffon/rosegriffon" = "app"
 
 # --------------------------------------------------------------------------------------------------------------
