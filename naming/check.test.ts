@@ -164,3 +164,14 @@ test("inventory lists names found in manifests", () => {
   expect(inv.bins).toEqual(["ay", "ay-x"]);
   expect(inv.envPrefixes).toEqual(["AY"]);
 });
+
+describe("declared upstream names and runtime forks", () => {
+  test("names.upstream frees registry names", () => {
+    const f = run({ "Cargo.toml": '[package]\nname = "gpui"\n', "package.json": '{"name":"zed-x"}' }, { id: "aphrody", kind: "os", org: "aphrody-dev", names: { upstream: true as unknown as string } });
+    expect(f).toEqual([]);
+  });
+  test("a runtime fork as submodule is a warning, not an error", () => {
+    const f = run({ ".gitmodules": '[submodule "vendor/bun"]\n\tpath = vendor/bun\n\turl = https://github.com/aphrody-labs/bun.git\n' }, { id: "aphrody", kind: "os", org: "aphrody-dev" });
+    expect(rules(f)).toEqual(["I002"]);
+  });
+});

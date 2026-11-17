@@ -242,7 +242,7 @@ members = ["yolo-ai", "yolo-backend", "yolo-cloudflare", "yolo-cross", "yolo-eng
 "aphrody-labs/.github" = "config"
 "aphrody-labs/msys" = "research"
 "aphrody-labs/r2b" = "research"
-"aphrody-labs/tao" = "app"
+"aphrody-labs/tao" = "fork"
 "aphrody-labs/scap" = "fork"
 "aphrody-labs/tauri-action" = "fork"
 "aphrody-labs/antigravity-sdk-python" = "fork"
@@ -320,3 +320,38 @@ new = "ai-os-"
 owner = "aphrody-dev/ai-os"
 status = "frozen"
 why = "agent, relay, model and RAG crates were published under the monorepo's prefix before the AI surface got its own repository; ai-os publishes new crates as ai-os-*"
+
+[[legacy]]
+kind = "repo"
+old = "aphrody-labs/egui-1"
+new = "aphrody-labs/emilk-egui"
+status = "renamed"
+why = "fork with a numeric suffix"
+
+[[legacy]]
+kind = "repo"
+old = "aphrody-labs/skills-4"
+new = "aphrody-labs/trailofbits-skills"
+status = "renamed"
+why = "fork with a numeric suffix"
+
+[[legacy]]
+kind = "repo"
+old = "aphrody-labs/skills-1"
+new = "aphrody-labs/openai-skills"
+status = "renamed"
+why = "fork with a numeric suffix"
+
+[[legacy]]
+kind = "repo"
+old = "aphrody-labs/coreutils-1"
+new = "aphrody-labs/coreutils-coreutils"
+status = "renamed"
+why = "fork with a numeric suffix"
+
+[[legacy]]
+kind = "repo"
+old = "aphrody-labs/ai-2"
+new = "aphrody-labs/cloudflare-ai"
+status = "renamed"
+why = "fork with a numeric suffix"

@@ -58,7 +58,7 @@ export function expected(decl: Decl, scheme: Scheme) {
   const own = [decl.id, ...(decl.family ? [decl.family] : [])];
   const short = shortOf(decl.id);
   const kind = scheme.kinds[decl.kind];
-  const free = !kind || kind.prefix === "upstream" || kind.prefix === "none";
+  const free = !kind || kind.prefix === "upstream" || kind.prefix === "none" || String(decl.names?.upstream) === "true";
   return {
     free,
     repo,
@@ -150,11 +150,11 @@ export function checkFiles(files: Files, decl: Decl, scheme: Scheme): Finding[] 
         const target = relative_ ? url.replace(/^(\.\.?\/)+/, "").replace(/\.git$/, "").split("/").pop()! : slug?.[2];
         const known = target ? scheme.repos[`${slug?.[1] ?? decl.org}/${target}`] ?? Object.entries(scheme.repos).find(([k]) => k.split("/")[1].toLowerCase() === target.toLowerCase())?.[1] : undefined;
         if (target && (relative_ || slug) && !isSelfSlug(slug?.[1] ?? decl.org, target, decl)) {
-          if (known && !["fork", "mirror"].includes(known)) add("I001", "error", file, `submodule "${m[1]}" embeds ${target}, an original repository of the family: use its published package or a pinned optional download`, line);
+          if (known && !["fork", "mirror", "runtime"].includes(known)) add("I001", "error", file, `submodule "${m[1]}" embeds ${target}, an original repository of the family: use its published package or a pinned optional download`, line);
           else add("I002", "warn", file, `submodule "${m[1]}" points into the family (${url}): must be a pinned fork or mirror and optional for the build`, line);
           if (relative_) add("I003", "info", file, `submodule "${m[1]}" uses a relative URL ${url}: it breaks when the repository is mirrored or renamed`, line);
         }
-        if (branch && (relative_ || slug)) add("I004", known && !["fork", "mirror"].includes(known) ? "error" : "warn", file, `submodule "${m[1]}" tracks branch ${branch}: pin a commit, a clean clone must give the same tree`, line);
+        if (branch && (relative_ || slug)) add("I004", known && !["fork", "mirror", "runtime"].includes(known) ? "error" : "warn", file, `submodule "${m[1]}" tracks branch ${branch}: pin a commit, a clean clone must give the same tree`, line);
       }
       continue;
     }

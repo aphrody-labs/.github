@@ -77,6 +77,7 @@ org = "aphrody-dev"
 # npm_scope = "@aphrody"
 # crate_prefix = "ay-"
 # env_prefix = "AY_"
+# upstream = true          # the workspace keeps an upstream's crate and package names (a fork that became a product)
 
 [legacy]                  # names that exist in registries or on disk and stay until their pipeline replaces them
 # crates = ["aphrody-"]
