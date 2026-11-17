@@ -21,8 +21,12 @@ const dir = arg("--dir", "/srv/xbuild/i18n")!;
 const repos = arg("--repos", "")!.split(",").filter(Boolean);
 const out = arg("--out", "i18n-remote-after.json")!;
 const message = arg("--message", "i18n: UTF-8 and LF repository hygiene (W3C Internationalization), .editorconfig and .gitattributes")!;
-const gitCfg = (key: string) => sh(["git", "config", "--global", key]).trim();
+const gitCfg = (key: string) => sh(["git", "-C", import.meta.dir, "config", key]).trim();
 const token = sh(["gh", "auth", "token"]).trim();
+
+// The checker travels with the call so the clones use the current rules.
+const here = import.meta.dir;
+for (const file of ["check.ts", "i18n.toml"]) sh(["ssh", host, `cat > ${dir}/_tool/${file}`], await Bun.file(`${here}/${file}`).text());
 
 const script = `AUTH=$(printf "x-access-token:%s" "$TOKEN" | base64 -w0)
 cd ${dir}

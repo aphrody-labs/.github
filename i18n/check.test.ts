@@ -184,6 +184,13 @@ describe("fix", () => {
     expect(await ids()).toEqual([]);
     expect(await fixRepo(dir)).toEqual([]);
   });
+  test("legacy multi-byte text is not converted blindly", async () => {
+    put("sjis.txt", Uint8Array.from([0x82, 0xa0, 0x82, 0xa2, 0x0a])); // Shift-JIS hiragana
+    const before = readFileSync(join(dir, "sjis.txt"));
+    await fixRepo(dir);
+    expect(readFileSync(join(dir, "sjis.txt"))).toEqual(before);
+    expect(await ids()).toContain("utf8-invalid");
+  });
   test("editorconfig and gitattributes completion", () => {
     expect(fixEditorconfig("[*]\nindent_size = 2\n")).toContain("charset = utf-8");
     expect(fixEditorconfig("[*]\ncharset = latin1\n")).toContain("charset = utf-8");

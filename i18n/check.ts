@@ -473,12 +473,21 @@ export async function checkRepo(rootArg: string, baseSpec?: Spec): Promise<RepoR
 
 // ---------- fixes ----------
 
+// windows-1252 text uses 0xA0-0xFF for letters; C1 bytes only as typographic punctuation. Multi-byte legacy
+// encodings (Shift-JIS, GBK, EUC) hit other C1 bytes or leave lone high bytes, and are not converted blindly.
+const CP1252_PUNCT = new Set([0x80, 0x85, 0x91, 0x92, 0x93, 0x94, 0x96, 0x97]);
+export function isPlausibleCp1252(bytes: Uint8Array): boolean {
+  for (const b of bytes) if (b >= 0x80 && b <= 0x9f && !CP1252_PUNCT.has(b)) return false;
+  return true;
+}
+
 export function fixBytes(rel: string, bytes: Uint8Array, ctx: Ctx): Uint8Array | null {
   const d = decode(bytes);
   if (d.kind === "binary") return null;
   let text: string;
   if (d.kind === "utf16") text = d.text;
   else if (d.kind === "invalid") {
+    if (!isPlausibleCp1252(bytes)) return null; // Shift-JIS, GBK, binary-ish: needs a human choice of encoding
     text = new TextDecoder("windows-1252").decode(bytes);
   } else text = d.text;
   const keepBom = d.kind === "text" && d.bom && matchAny(ctx.bomAllowed, rel);

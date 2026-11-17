@@ -5,7 +5,7 @@
 //       [--report-only ai-os,aphrody,...] --out i18n-report.json
 //
 // Local JSON files are named before-<repo>.json, fix-<repo>.json (--fix run) and after-<repo>.json (check.ts --json). Remote files come from scan-remote.ts.
-import { readdirSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import type { Finding, RepoResult } from "./check";
 
@@ -60,6 +60,7 @@ export async function main() {
   const afterDir = arg("--after-dir")!;
   const reportOnly = new Set((arg("--report-only", "") ?? "").split(",").filter(Boolean));
   const out = arg("--out")!;
+  const srcRoot = arg("--src-root", "C:/src")!;
   const meta = new Map<string, { isFork: boolean; description: string }>();
   for (const owner of ["aphrody-labs", "aphrody-dev"]) {
     const list = JSON.parse(Bun.spawnSync(["gh", "repo", "list", owner, "--limit", "1000", "--json", "name,isFork,description"]).stdout.toString());
@@ -75,10 +76,11 @@ export async function main() {
   const after = await localDir(afterDir, "after-");
   const fixes = await localDir(beforeDir, "fix-");
   const origin = (name: string) => {
-    const url = Bun.spawnSync(["git", "-C", `C:/src/${name}`, "remote", "get-url", "origin"]).stdout.toString().trim();
-    return /github\.com[/:]([^/]+\/[^/.]+)/.exec(url)?.[1] ?? name;
+    const url = Bun.spawnSync(["git", "-C", `${srcRoot}/${name}`, "remote", "get-url", "origin"]).stdout.toString().trim();
+    return /github\.com[/:]([^/]+\/[^/]+?)(?:\.git)?$/.exec(url)?.[1] ?? name;
   };
   for (const [name, b] of before) {
+    if (!existsSync(`${srcRoot}/${name}/.git`)) continue; // files of other agents sharing the directory
     const a = after.get(name) ?? b;
     const full = origin(name);
     const owner = reportOnly.has(name) ? "report-only" : "editable";
