@@ -1,0 +1,94 @@
+name: ci-c-llvm
+
+# Reusable CI for C and C++ repositories built with LLVM (clang, lld) and CMake + Ninja. Caller job id must be "ci".
+on:
+  workflow_call:
+    inputs:
+      llvm-version:
+        description: LLVM major version, for example "21"
+        type: string
+        required: true
+      source-dir:
+        type: string
+        default: .
+      cmake-args:
+        description: Extra CMake configure arguments
+        type: string
+        default: ""
+      build-type:
+        type: string
+        default: Release
+      os:
+        description: Runner labels as a JSON array
+        type: string
+        default: '["ubuntu-latest"]'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(inputs.os) }}
+    env:
+      CC: clang
+      CXX: clang++
+      SOURCE_DIR: ${{ inputs.source-dir }}
+      CMAKE_ARGS: ${{ inputs.cmake-args }}
+      BUILD_TYPE: ${{ inputs.build-type }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: recursive
+      - uses: KyleMayes/install-llvm-action@ebc0426251bc40c7cd31162802432c68818ab8f0 # v2.0.9
+        with:
+          version: ${{ inputs.llvm-version }}
+      - name: Install Ninja
+        shell: bash
+        run: |
+          if ! command -v ninja >/dev/null; then
+            case "$RUNNER_OS" in
+              Linux) sudo apt-get update && sudo apt-get install -y ninja-build ;;
+              macOS) brew install ninja ;;
+              Windows) choco install ninja -y ;;
+            esac
+          fi
+      - name: Configure
+        shell: bash
+        run: cmake -S "$SOURCE_DIR" -B build -G Ninja -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $CMAKE_ARGS
+      - name: Build
+        run: cmake --build build
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: KyleMayes/install-llvm-action@ebc0426251bc40c7cd31162802432c68818ab8f0 # v2.0.9
+        with:
+          version: ${{ inputs.llvm-version }}
+      - name: clang-format (only when .clang-format exists)
+        shell: bash
+        run: |
+          if [ -f .clang-format ]; then
+            git ls-files -z '*.c' '*.h' '*.cc' '*.cpp' '*.hpp' | xargs -0 --no-run-if-empty clang-format --dry-run --Werror
+          else
+            echo "no .clang-format, skipped"
+          fi
+
+  gate:
+    if: always()
+    needs: [check, format]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: test "${{ needs.check.result }}" = success && test "${{ needs.format.result }}" = success

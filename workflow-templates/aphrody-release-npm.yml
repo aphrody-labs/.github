@@ -1,0 +1,28 @@
+name: release
+
+# Tag vX.Y.Z -> GitHub Release + npm publish through trusted publishing.
+# On npmjs.com add a Trusted Publisher: this repository, workflow filename "release.yml".
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    uses: aphrody-labs/.github/.github/workflows/release.yml@main
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+  publish:
+    needs: [release]
+    uses: aphrody-labs/.github/.github/workflows/publish-npm.yml@main
+    permissions:
+      contents: read
+      id-token: write

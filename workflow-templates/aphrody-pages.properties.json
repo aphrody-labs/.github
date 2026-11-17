@@ -1,0 +1,7 @@
+{
+  "name": "Aphrody Pages (Actions)",
+  "description": "Build with Bun and deploy to GitHub Pages through Actions",
+  "iconName": "octicon workflow",
+  "categories": ["Deployment"],
+  "filePatterns": ["package\\.json"]
+}

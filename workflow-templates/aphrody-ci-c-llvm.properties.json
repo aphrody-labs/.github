@@ -1,0 +1,7 @@
+{
+  "name": "Aphrody CI (C and C++ with LLVM)",
+  "description": "Configure, build and test with clang, CMake and Ninja; required check ci / gate",
+  "iconName": "octicon workflow",
+  "categories": ["C++"],
+  "filePatterns": ["CMakeLists\\.txt"]
+}

@@ -1,0 +1,6 @@
+# Default owner. CODEOWNERS is not inherited from the organization; every original repository carries its own copy
+# (templates/CODEOWNERS). Later rules win.
+*                       @aphrody-dev
+/.github/workflows/     @aphrody-dev
+/standard.toml          @aphrody-dev
+/STANDARD.md            @aphrody-dev

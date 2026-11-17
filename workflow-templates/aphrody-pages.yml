@@ -1,0 +1,24 @@
+name: pages
+
+# Settings, Pages, Source: GitHub Actions. Custom domains follow the Cloudflare policy in STANDARD.md.
+on:
+  push:
+    branches: [$default-branch]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  pages:
+    uses: aphrody-labs/.github/.github/workflows/pages.yml@main
+    permissions:
+      contents: read
+      pages: write
+      id-token: write

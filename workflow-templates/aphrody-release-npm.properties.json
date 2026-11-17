@@ -1,0 +1,7 @@
+{
+  "name": "Aphrody release (npm, OIDC)",
+  "description": "Tag to GitHub Release and npm trusted publishing without tokens",
+  "iconName": "octicon workflow",
+  "categories": ["JavaScript"],
+  "filePatterns": ["package\\.json"]
+}

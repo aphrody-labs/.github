@@ -1,0 +1,60 @@
+name: publish-npm
+
+# Reusable npm publish with trusted publishing (OIDC): no NPM_TOKEN. Requirements (docs.npmjs.com/trusted-publishers):
+# GitHub-hosted runner, npm >= 11.5.1, Node >= 22.14.0, id-token: write in caller and callee, package.json repository.url equals the GitHub URL.
+# On npmjs.com the trusted publisher's workflow filename is the CALLER (for example release.yml), not this file.
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: Package directory
+        type: string
+        default: .
+      build-command:
+        type: string
+        default: bun run --if-present build
+      tag:
+        description: npm dist-tag
+        type: string
+        default: latest
+      bun-version:
+        type: string
+        default: latest
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: ${{ inputs.bun-version }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+      - name: Require npm >= 11.5.1
+        run: |
+          v="$(npm --version)"
+          [ "$(printf '%s\n' 11.5.1 "$v" | sort -V | head -n1)" = 11.5.1 ] || { echo "::error::npm $v is older than 11.5.1"; exit 1; }
+      - run: bun install --frozen-lockfile
+      - name: Build
+        env:
+          BUILD_COMMAND: ${{ inputs.build-command }}
+        run: bash -c "$BUILD_COMMAND"
+      - name: Publish with provenance
+        env:
+          TAG: ${{ inputs.tag }}
+        run: npm publish --access public --tag "$TAG"

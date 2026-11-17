@@ -1,0 +1,7 @@
+{
+  "name": "Aphrody release (crates.io, OIDC)",
+  "description": "Tag to GitHub Release and crates.io trusted publishing without tokens",
+  "iconName": "octicon workflow",
+  "categories": ["Rust"],
+  "filePatterns": ["Cargo\\.toml"]
+}

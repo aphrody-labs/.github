@@ -1,0 +1,55 @@
+name: release
+
+# Reusable GitHub Release from a pushed tag vX.Y.Z: generated notes (categories from .github/release.yml),
+# optional artifact attestations. Caller triggers on push tags "v*" and grants contents: write, id-token: write, attestations: write.
+on:
+  workflow_call:
+    inputs:
+      assets:
+        description: Glob of release assets already present in the workspace (built by an earlier job or step); empty for none
+        type: string
+        default: ""
+      attest:
+        description: Create build provenance attestations for the assets
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check the tag is semver
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]] || { echo "::error::tag $TAG is not vMAJOR.MINOR.PATCH"; exit 1; }
+      - if: ${{ inputs.attest && inputs.assets != '' }}
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ inputs.assets }}
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          ASSETS: ${{ inputs.assets }}
+        run: |
+          flags=(--generate-notes --verify-tag)
+          case "$TAG" in *-*) flags+=(--prerelease) ;; esac
+          if [ -n "$ASSETS" ]; then
+            shopt -s globstar nullglob
+            files=($ASSETS)
+            gh release create "$TAG" "${flags[@]}" "${files[@]}"
+          else
+            gh release create "$TAG" "${flags[@]}"
+          fi

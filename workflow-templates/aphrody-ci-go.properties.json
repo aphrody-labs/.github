@@ -1,0 +1,7 @@
+{
+  "name": "Aphrody CI (Go)",
+  "description": "vet, race tests and golangci-lint; required check ci / gate",
+  "iconName": "octicon workflow",
+  "categories": ["Go"],
+  "filePatterns": ["go\\.mod"]
+}

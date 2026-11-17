@@ -1,0 +1,7 @@
+{
+  "name": "Aphrody CI (Rust)",
+  "description": "fmt, clippy and tests for a Cargo workspace; required check ci / gate",
+  "iconName": "octicon workflow",
+  "categories": ["Rust"],
+  "filePatterns": ["Cargo\\.toml"]
+}

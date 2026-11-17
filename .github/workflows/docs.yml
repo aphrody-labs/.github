@@ -1,0 +1,76 @@
+name: docs
+
+# Reusable docs gate: markdownlint, link check, MDX compile. Caller job id must be "ci" or "docs".
+on:
+  workflow_call:
+    inputs:
+      globs:
+        description: Markdown globs for markdownlint-cli2
+        type: string
+        default: "**/*.md #node_modules #third_party #vendor #upstream"
+      check-links:
+        type: boolean
+        default: true
+      mdx-dir:
+        description: Directory of .mdx files to compile; empty skips the MDX check
+        type: string
+        default: docs
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: DavidAnson/markdownlint-cli2-action@696eb3f2509270d7b882d2aa68347bc676e7af34 # v25.0.0
+        with:
+          globs: ${{ inputs.globs }}
+      - if: ${{ inputs.check-links }}
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: --no-progress --accept 200,206,429 --exclude-mail --exclude-path node_modules --exclude-path third_party './**/*.md' './**/*.mdx'
+          fail: true
+      - if: ${{ inputs.mdx-dir != '' }}
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+      - name: Compile MDX
+        if: ${{ inputs.mdx-dir != '' }}
+        env:
+          MDX_DIR: ${{ inputs.mdx-dir }}
+        run: |
+          tool="$RUNNER_TEMP/mdx-check"
+          mkdir -p "$tool"
+          (cd "$tool" && bun add @mdx-js/mdx@3.1.1 >/dev/null)
+          cat > "$tool/check.mjs" <<'JS'
+          import { compile } from "@mdx-js/mdx";
+          import { Glob } from "bun";
+          const root = process.argv[2];
+          let failed = 0;
+          for await (const file of new Glob("**/*.mdx").scan({ cwd: root, absolute: true })) {
+            const text = await Bun.file(file).text();
+            try {
+              await compile(text, { format: "mdx" });
+              const fm = text.startsWith("---") ? text.slice(3, text.indexOf("\n---", 3)) : "";
+              for (const key of ["title", "description"]) {
+                if (!new RegExp(`^${key}:`, "m").test(fm)) throw new Error(`front matter is missing ${key}`);
+              }
+            } catch (err) {
+              failed++;
+              console.error(`::error file=${file}::${err.message}`);
+            }
+          }
+          process.exit(failed ? 1 : 0);
+          JS
+          if [ -d "$MDX_DIR" ]; then bun "$tool/check.mjs" "$PWD/$MDX_DIR"; else echo "no $MDX_DIR directory, skipped"; fi
+
+  gate:
+    if: always()
+    needs: [lint]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: test "${{ needs.lint.result }}" = success

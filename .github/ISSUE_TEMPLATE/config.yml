@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a vulnerability (private)
+    url: https://github.com/aphrody-labs/.github/blob/main/SECURITY.md
+    about: Use the Security tab of the repository, never a public issue.
+  - name: Ask a question
+    url: https://github.com/aphrody-labs/.github/blob/main/SUPPORT.md
+    about: Where to ask usage questions and how support works.

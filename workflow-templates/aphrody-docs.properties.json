@@ -1,0 +1,7 @@
+{
+  "name": "Aphrody docs lint",
+  "description": "markdownlint, link check and MDX compile",
+  "iconName": "octicon workflow",
+  "categories": ["Automation"],
+  "filePatterns": ["README\\.md", "docs/.*"]
+}

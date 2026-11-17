@@ -1,0 +1,23 @@
+name: Documentation
+description: Missing, wrong or unclear documentation
+title: "docs: "
+labels: ["docs", "needs-triage"]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Page or file
+      description: URL or path of the documentation.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong or missing
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested text
+      description: Optional. A pull request with the fix is even better.

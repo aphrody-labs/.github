@@ -1,0 +1,20 @@
+name: docs
+
+on:
+  push:
+    branches: [$default-branch]
+    paths: ["**/*.md", "**/*.mdx", ".github/workflows/docs.yml"]
+  pull_request:
+    paths: ["**/*.md", "**/*.mdx", ".github/workflows/docs.yml"]
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  docs:
+    uses: aphrody-labs/.github/.github/workflows/docs.yml@main

@@ -1,0 +1,7 @@
+{
+  "name": "Aphrody CI (Bun)",
+  "description": "Install, lint, typecheck, test and build a Bun or TypeScript repository; required check ci / gate",
+  "iconName": "octicon workflow",
+  "categories": ["JavaScript"],
+  "filePatterns": ["package\\.json", "bun\\.lock"]
+}

@@ -1,0 +1,29 @@
+name: release
+
+# Tag vX.Y.Z -> GitHub Release + crates.io publish through trusted publishing.
+# Publish the first version once with an API token, then add a Trusted Publisher in the crate settings:
+# this repository, workflow filename "release.yml", environment "release".
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    uses: aphrody-labs/.github/.github/workflows/release.yml@main
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+  publish:
+    needs: [release]
+    uses: aphrody-labs/.github/.github/workflows/publish-crates.yml@main
+    permissions:
+      contents: read
+      id-token: write

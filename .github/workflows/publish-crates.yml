@@ -1,0 +1,48 @@
+name: publish-crates
+
+# Reusable crates.io publish with trusted publishing (OIDC): a 30 minute token, no CARGO_REGISTRY_TOKEN.
+# The crate must already exist (first publish uses an API token once); then configure Trusted Publishing in the crate settings
+# with this repository, the CALLER workflow filename (for example release.yml) and the optional environment "release".
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        type: string
+        default: .
+      package:
+        description: Package name for a workspace (cargo publish -p); empty publishes the root package
+        type: string
+        default: ""
+      toolchain:
+        type: string
+        default: stable
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: ${{ inputs.toolchain }}
+      - uses: rust-lang/crates-io-auth-action@3268eb413133e2960fa4ae0e963ca76380c54cd9 # v1.0.6
+        id: auth
+      - name: Publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+          PACKAGE: ${{ inputs.package }}
+        run: |
+          if [ -n "$PACKAGE" ]; then cargo publish --locked -p "$PACKAGE"; else cargo publish --locked; fi

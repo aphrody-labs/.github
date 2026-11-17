@@ -1,0 +1,34 @@
+name: Feature request
+description: Propose a capability or behavior change
+title: "feat: "
+labels: ["feature", "needs-triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What you cannot do today, and why it matters.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: The behavior you want. An API sketch or example is welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing tools or upstream features that almost fit.
+  - type: dropdown
+    id: contribute
+    attributes:
+      label: Can you help build it?
+      options:
+        - "Yes, I will send a pull request"
+        - "Yes, with guidance"
+        - "No"
+    validations:
+      required: true

@@ -1,0 +1,18 @@
+# Copy to .github/release.yml. Categories of the generated GitHub Release notes (gh release create --generate-notes).
+changelog:
+  exclude:
+    labels: [skip-changelog]
+    authors: [dependabot, github-actions]
+  categories:
+    - title: Breaking
+      labels: [breaking]
+    - title: Features
+      labels: [feature]
+    - title: Fixes
+      labels: [bug, security]
+    - title: Documentation
+      labels: [docs]
+    - title: Maintenance
+      labels: [chore, dependencies, github_actions, bun, rust]
+    - title: Other
+      labels: ["*"]

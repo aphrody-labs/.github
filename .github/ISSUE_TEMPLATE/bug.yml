@@ -1,0 +1,60 @@
+name: Bug report
+description: Something does not work as documented
+title: "bug: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues first. For a vulnerability use the Security tab, not this form.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened
+      description: One or two sentences. Include the expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: A minimal, copy-pasteable reproduction.
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Output, logs or screenshot
+      description: Remove secrets and tokens before pasting.
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Release tag or `git rev-parse --short HEAD`.
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      multiple: true
+      options:
+        - Windows
+        - Linux
+        - macOS
+        - Android
+        - Web / browser
+        - Other
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched open and closed issues.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true

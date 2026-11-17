@@ -1,36 +1,34 @@
 name: readme
 
-# Regenerates this profile README from the GitHub API with scripts/catalog.ts of aphrody-labs/ay
-# (projects ranked by stars, recent pushes and CI status; archived repositories left out).
+# Regenerates profile/README.md from the live repository lists with profile/generate.ts (roles and families: standard.toml).
 on:
   schedule:
-    - cron: "17 */6 * * *"
+    - cron: "17 4 * * *"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: readme
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   readme:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v7
-      - uses: oven-sh/setup-bun@v2
-      - name: Fetch the generator
-        run: |
-          git clone --depth 1 --filter=blob:none --sparse https://github.com/aphrody-labs/ay.git src
-          git -C src sparse-checkout set --no-cone /scripts /package.json /packages/design/brand /packages/i18n /frameworks/i18n-ts
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
       - name: Generate
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bun src/scripts/catalog.ts profile aphrody-labs --out profile/README.md
+        run: bun profile/generate.ts
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add profile/README.md
-          if git diff --cached --quiet; then echo "up to date"; else git commit -m "readme: regenerate from the GitHub API" && git push; fi
+          if git diff --cached --quiet; then echo "up to date"; else git commit -m "docs(profile): regenerate from the GitHub API" && git push; fi
