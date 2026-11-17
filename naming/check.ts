@@ -169,7 +169,7 @@ export function checkFiles(files: Files, decl: Decl, scheme: Scheme): Finding[] 
       }
       const name = t.package?.name;
       if (typeof name === "string" && t.package?.publish !== false) {
-        if (name.includes("_")) add("N013", "warn", file, `crate "${name}" uses underscores: crates.io names are hyphenated`);
+        if (name.includes("_") && !exp.free) add("N013", "warn", file, `crate "${name}" uses underscores: crates.io names are hyphenated`);
         stemsCheck("N011", file, name.replace(/_/g, "-"), exp.crateStems, "crate");
       }
       const walk = (tables: any, where: string) => {

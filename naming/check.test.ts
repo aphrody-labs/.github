@@ -177,3 +177,9 @@ describe("declared upstream names and runtime forks", () => {
     expect(rules(f)).toEqual(["I002"]);
   });
 });
+
+test("underscore crate names are not flagged when the repository keeps upstream names", () => {
+  const files = new Map([["Cargo.toml", '[package]\nname = "acp_thread"\n']]) as Files;
+  expect(checkFiles(files, { id: "bun", kind: "runtime", org: "aphrody-labs" }, scheme)).toEqual([]);
+  expect(rules(checkFiles(files, ay, scheme))).toContain("N013");
+});
