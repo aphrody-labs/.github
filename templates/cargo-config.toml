@@ -1,0 +1,13 @@
+# .cargo/config.toml of the Aphrody Labs toolchain. CI also sets CARGO_INCREMENTAL=0 and uses sccache (RUSTC_WRAPPER), as Zed does.
+[target.'cfg(all())']
+# v0 mangling gives more detailed backtraces around closures.
+rustflags = ["-C", "symbol-mangling-version=v0"]
+
+[registries.crates-io]
+protocol = "sparse"
+
+[resolver]
+incompatible-rust-versions = "fallback"
+
+[net]
+git-fetch-with-cli = true

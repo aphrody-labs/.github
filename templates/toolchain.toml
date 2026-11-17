@@ -1,0 +1,80 @@
+# One toolchain for every repository of the organization. tools/toolchain.ts reads this file: `update` refreshes the versions from
+# their live sources, `check` reports every checkout that drifted, `apply` writes rust-toolchain.toml and the [install] section of
+# bunfig.toml. The shape follows Zed (zed-industries/zed): a minimal profile with the editor components, the targets a repository
+# really builds for, and the same tools in CI. Zed pins an older stable on purpose; this organization tracks the latest stable.
+
+[rust]
+# Latest stable (static.rust-lang.org/dist/channel-rust-stable.toml). `update` moves it.
+channel = "1.100.0"
+profile = "minimal"
+components = ["rustfmt", "clippy", "rust-analyzer", "rust-src"]
+# Targets are per repository ([repo.<name>] below): none by default.
+targets = []
+
+[rust.nightly]
+# Repositories that need a nightly pin it by date; CI images and the toolchain file change together.
+pinned = "nightly-2026-11-14"
+
+[tools]
+# Cargo tools, installed with `cargo binstall --locked <name>@<version>` on the build hosts and in CI. `update` moves them
+# to the latest stable release on crates.io.
+cargo-nextest = "0.9.152"
+cargo-deny = "0.21.0"
+cargo-machete = "0.10.1"
+cargo-hakari = "0.9.39"
+cargo-binstall = "1.27.0"
+cargo-about = "0.9.3"
+cargo-llvm-cov = "0.9.1"
+cargo-audit = "0.23.0"
+cargo-semver-checks = "0.51.0"
+cargo-insta = "1.49.0"
+cargo-shear = "1.14.1"
+sccache = "0.19.0"
+typos-cli = "1.52.2"
+taplo-cli = "0.10.0"
+just = "1.59.0"
+# binutils (llvm-objdump, size, nm, strip) through the toolchain's llvm-tools component; bacon is the background checker that replaced cargo-watch
+cargo-binutils = "0.4.0"
+bacon = "3.26.0"
+# target directory hygiene, Docker layer caching, mutation testing, release packaging
+cargo-sweep = "0.8.0"
+cargo-chef = "0.1.78"
+cargo-mutants = "27.1.0"
+cargo-dist = "0.34.0"
+cargo-zigbuild = "0.24.1"
+
+[bun]
+# Package-manager policy, merged into the [install] section of every bunfig.toml (docs: pm/isolated-installs, pm/global-store,
+# runtime/bunfig). Isolated installs keep phantom dependencies out; the global store makes a warm install one symlink per package
+# (29 ms against 460 ms cold for a 17-package workspace here); exact versions and a 3-day release age keep a freshly published
+# malicious release out of an install.
+linker = "isolated"
+globalStore = true
+exact = true
+saveTextLockfile = true
+minimumReleaseAge = 259200
+
+# Per-repository exceptions. A key replaces the default; `pin` keeps the repository's own value for that key.
+[repo.aphrody]
+# A Zed fork: the editor components and targets of Zed's rust-toolchain.toml.
+targets = ["wasm32-wasip2", "wasm32-unknown-unknown", "x86_64-unknown-linux-musl"]
+
+[repo.bun]
+channel = "nightly-2026-11-14"
+
+[repo.aysh]
+channel = "nightly-2026-11-14"
+
+[repo.ai-os]
+bun = { linker = "hoisted", globalStore = false }
+
+[repo.rosegriffon]
+bun = { linker = "hoisted", globalStore = false }
+
+[sccache]
+# Compilation cache of a build host (~/.config/sccache/config). Incremental compilation cannot be cached, so hosts and CI build
+# with CARGO_INCREMENTAL=0 and RUSTC_WRAPPER=sccache. basedirs make a hit independent of where a checkout lives. A shared remote
+# cache (Cloudflare R2 through its S3 API) is configured by the environment of the host or the CI job: SCCACHE_BUCKET,
+# SCCACHE_ENDPOINT, SCCACHE_REGION=auto and the access keys; none of it is written to a file here.
+size = "120G"
+basedirs = ["/srv/xbuild", "/srv/repos"]

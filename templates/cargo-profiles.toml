@@ -1,0 +1,29 @@
+# Cargo profiles of the Aphrody Labs toolchain (templates/toolchain.toml), taken from Zed's root Cargo.toml: split debug info,
+# 16 codegen units and limited debug info for dev, and the same settings for build scripts and proc macros, which otherwise
+# compile a second time for the build platform. Release is thin LTO with one codegen unit. `bun tools/toolchain.ts check`
+# reports a workspace whose profiles differ. Add per-package overrides (opt-level = 3 for proc-macro crates and heavy parsers)
+# in the repository, as Zed does.
+
+[profile.dev]
+split-debuginfo = "unpacked"
+incremental = true
+codegen-units = 16
+debug = "limited"
+
+[profile.dev.build-override]
+codegen-units = 16
+split-debuginfo = "unpacked"
+debug = "limited"
+
+# "debug" is a reserved profile name.
+[profile.dbg]
+inherits = "dev"
+debug = "full"
+
+[profile.dbg.build-override]
+debug = "full"
+
+[profile.release]
+debug = "limited"
+lto = "thin"
+codegen-units = 1

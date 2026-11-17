@@ -1,13 +1,15 @@
 name: ci-rust
 
 # Reusable CI for Rust repositories (Cargo workspaces). Caller job id must be "ci".
+# The toolchain is the one the repository pins in rust-toolchain.toml; `toolchain` overrides it for a one-off run.
+# Compilation is cached by sccache (GitHub cache backend), the registry by rust-cache; incremental compilation is off, as in Zed's CI.
 on:
   workflow_call:
     inputs:
       toolchain:
-        description: Rust toolchain (stable, nightly, or a version)
+        description: Rust toolchain (stable, nightly, or a version); empty uses rust-toolchain.toml
         type: string
-        default: stable
+        default: ""
       working-directory:
         type: string
         default: .
@@ -19,13 +21,21 @@ on:
         description: Cargo feature flags, for example "--all-features" or "--no-default-features"
         type: string
         default: --all-features
+      hygiene:
+        description: Run the typos, unused-dependency and cargo-deny checks
+        type: boolean
+        default: true
 
 permissions:
   contents: read
 
 env:
   CARGO_TERM_COLOR: always
-  RUSTFLAGS: -D warnings
+  CARGO_INCREMENTAL: "0"
+  CARGO_PROFILE_DEV_DEBUG: line-tables-only
+  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+  RUSTC_WRAPPER: sccache
+  SCCACHE_GHA_ENABLED: "true"
 
 jobs:
   check:
@@ -42,21 +52,56 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Toolchain from rust-toolchain.toml
+        if: inputs.toolchain == ''
+        run: rustup toolchain install && rustc --version
       - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        if: inputs.toolchain != ''
         with:
           toolchain: ${{ inputs.toolchain }}
           components: rustfmt, clippy
+      - uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           workspaces: ${{ inputs.working-directory }}
+          cache-targets: false
+      - uses: taiki-e/install-action@ab49d3c64680143e184118bed66a46419fc15519 # v2.90.5
+        with:
+          tool: cargo-nextest
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets --locked ${{ inputs.features }} -- -D warnings
-      - run: cargo test --workspace --locked ${{ inputs.features }}
+      - run: cargo nextest run --workspace --locked ${{ inputs.features }} --no-tests=pass
+      - run: cargo test --workspace --doc --locked ${{ inputs.features }}
+      - run: sccache --show-stats
+        if: always()
+
+  hygiene:
+    if: inputs.hygiene
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: crate-ci/typos@276087d9a4f06398b3e04825487805e2d7375888 # v1.52.2
+      - uses: taiki-e/install-action@ab49d3c64680143e184118bed66a46419fc15519 # v2.90.5
+        with:
+          tool: cargo-shear
+      - name: Unused dependencies
+        run: cargo shear
+      - name: Licenses, advisories and bans
+        if: hashFiles('deny.toml', '.config/deny.toml') != ''
+        uses: EmbarkStudios/cargo-deny-action@70f81531115945ba6eb6b941ec9d39d063438eb9 # v2.1.2
 
   gate:
     if: always()
-    needs: [check]
+    needs: [check, hygiene]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - run: test "${{ needs.check.result }}" = success
+      - run: |
+          test "${{ needs.check.result }}" = success
+          test "${{ needs.hygiene.result }}" = success -o "${{ needs.hygiene.result }}" = skipped
