@@ -55,7 +55,7 @@ export function auditRepo(r: Repo, scheme: Scheme): Row {
   const k = scheme.kinds[kind];
   if (!k) return { slug, cls, kind, verdict: "violation", why: `unknown kind ${kind}` };
   if (!k.orgs.includes(org)) return { slug, cls, kind, verdict: "violation", why: `kind ${kind} belongs in ${k.orgs.join(" or ")}` };
-  if (!/^[a-z0-9.-]+$/.test(name) && name !== ".github") return { slug, cls, kind, verdict: "violation", why: "repository names are lowercase kebab-case" };
+  if (k.pattern !== "upstream" && k.pattern !== "any" && !/^[a-z0-9.-]+$/.test(name) && name !== ".github") return { slug, cls, kind, verdict: "violation", why: "repository names are lowercase kebab-case" };
   if (k.pattern !== "upstream" && k.pattern !== "any" && !new RegExp(k.pattern).test(name)) return { slug, cls, kind, verdict: "violation", why: `does not match ${k.pattern}` };
   if (kind === "family") {
     const fam = Object.entries(scheme.families ?? {}).find(([, f]) => f.root === name || f.members.includes(name));

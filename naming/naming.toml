@@ -397,3 +397,24 @@ old = "aphrody-labs/ai-2"
 new = "aphrody-labs/cloudflare-ai"
 status = "renamed"
 why = "fork with a numeric suffix"
+
+[[legacy]]
+kind = "repo"
+old = "aphrody-labs/headless_chrome"
+new = "aphrody-labs/rust-headless-chrome"
+status = "renamed"
+why = "fork renamed to match upstream repository name"
+
+[[legacy]]
+kind = "repo"
+old = "aphrody-labs/lightpanda"
+new = "aphrody-labs/lightpanda-io-browser"
+status = "renamed"
+why = "fork colliding with aphrody-labs/browser uses <upstream-owner>-<name>"
+
+[[legacy]]
+kind = "repo"
+old = "aphrody-labs/native-shell"
+new = "aphrody-labs/longbridge-native-shell"
+status = "renamed"
+why = "fork colliding with aphrody-labs/nsh and archived longbridge-nsh uses <upstream-owner>-native-shell"
