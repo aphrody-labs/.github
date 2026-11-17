@@ -4,6 +4,8 @@
 //   bun i18n/fix-remote.ts --host fr1 --dir /srv/xbuild/i18n --repos aphrody-labs/aphrody-m3,aphrody-labs/yolo --out after.json
 //
 // Commit identity is the PC's git identity; the token travels on ssh stdin only.
+export {};
+
 const arg = (name: string, fallback?: string) => {
   const i = process.argv.indexOf(name);
   return i >= 0 ? process.argv[i + 1] : fallback;
