@@ -310,6 +310,8 @@ Order, each step reversible and recorded:
 5. Forks: disable inherited workflows on the failing ones, issues off.
 6. Cloudflare: delete only proven duplicates or orphans; the rest after the domain-role decision.
 
+Steps 2 to 5 are `bun tools/apply.ts` (dry run by default, `--apply` to write, `--only=org,archive,settings,labels,security,rulesets,features,readme,forks,needs`, `--repo=owner/name`). Every step reads the live state and writes only the difference, so a dry run right after an apply must print no `would` line. Run on 2026-11-17: the free plan has no private-repository rulesets, auto-merge, secret scanning, non-provider patterns or validity checks, and `main-gated` stays deferred until the `ci / gate` check has run on the default branch of a repository.
+
 Verification is by API, never by status code alone: `GET` the setting back and compare with standard.toml; screenshots or DOM for anything rendered (profile, Pages); the first green run of each reusable workflow; `bun tools/lint-standard.ts` for this repository.
 
 ## 18. Verified facts

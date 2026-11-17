@@ -300,8 +300,8 @@ dependabot_security_updates = "enabled"
 code_scanning_default_setup = "enabled"
 secret_scanning = "enabled"
 secret_scanning_push_protection = "enabled"
-secret_scanning_non_provider_patterns = "enabled"
-secret_scanning_validity_checks = "enabled"
+secret_scanning_non_provider_patterns = "disabled"   # accepted by the API but stays disabled on the free plan (verified 2026-11-17)
+secret_scanning_validity_checks = "disabled"       # same
 private_vulnerability_reporting = "enabled"
 enforcement = "enforced"
 attach_scope = "selected"            # the apply phase passes the repository ids of public originals
@@ -709,3 +709,10 @@ patterns = ["Plugin", "^(LiveScan3D|UE4-OSC|Azure-Kinect|StreamTwo|cloudcam|Runt
 [[profile.fork_families]]
 title = "Templates, samples and miscellaneous"
 patterns = ["-template$", "^eve", "^(analytics|chat|chatbot|sdk|serve|shop|run|fun|fx|micro|storage|examples|speed-insights|otel|workflow|sandbox|microfrontends|registry-starter|content|deploy-action|repository-dispatch|resumable-stream|acp-handler|arcade|avatar|agentenv|aws-s3|autoship|beautiful-mermaid|before-and-after|browse|browser-control|browser-wpt|bun-|call|coding-agent|deepsec|demo-notes|example-marketplace|freenextjs|guarded-fetch|harness|hono|issue-graph|knowledge|kysely|lat\\.md|lore|konsistent|marketing|markdown-sanitizers|mdxjs|microfrontends|node-require|npm\\.bet|open-agents|orb_data|paseo|personal-agent|phase|ralph|remote-|rex-cloud|sandboxed|sanity|screenshots|social|telemetry|tsc-ts|vcr|vgpu|visual-json|web-quality|webreel|workers-sdk|emulate|scriptc|nextjs|ai$|error|opentui|amplifier|isr-platform|humanizer|academy|accessibility-cli|acp-rust-sdk|action-setup|apm|antigravity|aphrody|ayNT|LiberNT|libernt|longbridge|modern-web|native-shell|stax|bazzite|webui|playwright|vscode|TypeScript|typescript-go|unixwin|wpm|winux|UFO|intelligent|skill-recorder|Oryx|adbwinapi|rsrpc|apify|crawlee|oh-my-niu|shellbench|diffcorpus|component-model|esm-integration|js-promise|shared-everything|tool-conventions|container2wasm|greenfield|libsla|sleigh|cridecoder|qemu|embedded|pop-)"]
+
+# ---------------------------------------------------------------------------------------------
+# Archiving (tools/apply.ts, step archive). Archive is reversible (PATCH archived=false); nothing is deleted.
+# ---------------------------------------------------------------------------------------------
+[archive]
+dead_days = 30                        # no push for this long, no stars, forks, issues or pull requests, no submodule reference
+duplicate_rule = "forks of one upstream in the same owner set: archive the copy that has no commit the keeper lacks (identical or strict subset); keeper = referenced as a submodule, then named like the upstream, then most recently pushed"
