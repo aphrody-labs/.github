@@ -16,8 +16,7 @@ Owner's rule: every repository of aphrody-dev, aphrody-labs and rose-griffon, lo
 
 | Org | Holds | npm scope | GHCR |
 |---|---|---|---|
-| aphrody-dev | the OS and the toolkits others may consume: `aphrody` (os), `ay` (sdk), `anu` (unix), `ai-os` (ai), `aydroid` (android), `aynt` (nt), `aysh` (tool), `.github` profile (config) | `@aphrody` | `ghcr.io/aphrody-dev` |
-| aphrody-labs | applications, runtime, crafts, research, configuration, forks and mirrors | `@aphrody` | `ghcr.io/aphrody-labs` |
+| aphrody-labs | OS (`aphrody`), SDK (`ay`), applications, runtime, crafts, research, configuration, forks and mirrors | `@aphrody` | `ghcr.io/aphrody-labs` |
 | rose-griffon | the Rose Griffon site and tools (`rosegriffon`) | `@rosegriffon` | `ghcr.io/rose-griffon` |
 
 Repository name per kind (all lowercase kebab-case, `[a-z0-9-]`, no dots, underscores or uppercase for originals):
@@ -25,29 +24,29 @@ Repository name per kind (all lowercase kebab-case, `[a-z0-9-]`, no dots, unders
 | Kind | Rule | Examples |
 |---|---|---|
 | os | exactly `aphrody` | aphrody |
-| sdk, unix, android, nt, tool | one short word, 2 to 12 characters | ay, anu, aydroid, aynt, aysh |
-| ai, runtime, craft, game, app, browser, research | kebab-case product id | ai-os, bun, nie, craft-anything, shenron, auto, open, browser, msys, r2b |
+| sdk, nt, tool | one short word, 2 to 12 characters | ay, aynt |
+| app, browser, craft, game, research, runtime | kebab-case product id | bun, nie, craft-anything, shenron, auto, open, ay-cf, ay-media, browser, msys, r2b |
 | design | `aphrody-<short>` | aphrody-m3 |
 | family | `<family>` for the root, `<family>-<unit>` for members, listed under `[families]` | yolo, yolo-ui, yolo-re |
-| config | `.github`, `claude`, or `<id>-config` | shenron-config |
+| config | `.github`, `claude`, `gemini`, or `<id>-config` | shenron-config |
 | fork, mirror | the upstream name; on a collision `<upstream-owner>-<name>` (or a declared alias such as `gfw-`); never a numeric suffix | zig, uutils-coreutils |
-| archive | frozen as it was, never renamed or published from | legacy |
+| archive | frozen as it was, never renamed or published from | legacy, ai-os, anu, ay-tools, aysh, ayvpn |
 
 A fork that became a product is registered under the product's kind and follows that kind (aphrody started as a Zed fork and is kind `os`).
 
 ## 3. Names per registry
 
-`{id}` is the repository id (the repository name unless `repo` differs), `{short}` is the id without a leading `aphrody-` (`aphrody-m3` gives `m3`, `aphrody` gives nothing), `{ID}` the id upper-cased with `_`, `{unit}` the package inside the repository.
+`{id}` is the repository id (the repository name unless `repo` differs), `{short}` is the id without a leading `aphrody-` (`aphrody-m3` gives `m3`, `aphrody` gives nothing), `{ID}` the id upper-cased with `_`, `{unit}` the package inside the repository. Across `aphrody-labs`, npm packages use the `@aphrody` scope and new non-exception Rust crates use the `ay-` prefix (`aphrody-` is reserved for `aphrody` and absorbed features in `ay`/`aphrody`), while `shenron`, `nie`, and `rosegriffon` keep their own prefixes and scopes.
 
 | Registry | Rule | Example (id `ay`) | Example (id `aphrody`) |
 |---|---|---|---|
-| GitHub | `{org}/{id}` | aphrody-dev/ay | aphrody-dev/aphrody |
-| crates.io | `{id}-{unit}`, hyphens only | ay-brand | aphrody-kernel |
-| npm | `{scope}/{short}-{unit}`; main package `{scope}/{short}`; OS repository `{scope}/{unit}` | @aphrody/ay-chromium | @aphrody/kernel |
+| GitHub | `{org}/{id}` | aphrody-labs/ay | aphrody-labs/aphrody |
+| crates.io | `ay-{unit}` (satellites), `aphrody-*` (`ay`/`aphrody`); `shenron-*`/`koharu-*`/`nie-*`/`rg-*` keep their own | ay-brand, ay-cf-edge, ay-auto-modele | aphrody-kernel |
+| npm | `@aphrody/{short}-{unit}` (except `@rosegriffon/*` and `shenron`/`nie`); main package `@aphrody/{short}` | @aphrody/ay-chromium, @aphrody/auto-domain | @aphrody/kernel |
 | PyPI | `{id}-{unit}`; import package `{id_snake}_{unit}` | ay-tools, ay_tools | aphrody-sdk |
 | NuGet | `Aphrody.{Short}.{Unit}` | Aphrody.Ay.Interop | Aphrody.Kernel |
-| Go | module path is the repository URL: `github.com/{org}/{repo}/{unit}` | github.com/aphrody-dev/ay/tools | github.com/aphrody-dev/aphrody |
-| Docker | `ghcr.io/{org}/{repo}-{unit}`; GHCR only | ghcr.io/aphrody-dev/ay-tools | ghcr.io/aphrody-dev/aphrody |
+| Go | module path is the repository URL: `github.com/{org}/{repo}/{unit}` | github.com/aphrody-labs/ay/tools | github.com/aphrody-labs/aphrody |
+| Docker | `ghcr.io/{org}/{repo}-{unit}`; GHCR only | ghcr.io/aphrody-labs/ay-tools | ghcr.io/aphrody-labs/aphrody |
 | Cloudflare | `{id}-{unit}-{stage}`, stage in `prod`, `stg`, `dev`; workers, pages, D1, R2, KV, queues | ay-docs-prod | aphrody-api-stg |
 | Environment | `{ID}_{NAME}`; platform and upstream variables (`CI`, `GITHUB_*`, `CARGO_*`, `BUN_*` ...) keep their own | AY_HOME | APHRODY_HOME |
 | CLI binary | `{id}`; more binaries `{id}-{unit}` | ay, ay-docs | aphrody |

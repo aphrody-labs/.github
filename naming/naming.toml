@@ -71,35 +71,35 @@ neutral = [
 # "upstream" means the name is the upstream project's own, byte for byte (so `git remote upstream` and packages keep resolving).
 # --------------------------------------------------------------------------------------------------------------
 [kinds.os]
-orgs = ["aphrody-dev"]
+orgs = ["aphrody-labs", "aphrody-dev"]
 name = "the single repository named aphrody"
 pattern = "^aphrody$"
 publishes = ["crates", "npm", "ghcr"]
 prefix = "own-id"
 
 [kinds.sdk]
-orgs = ["aphrody-dev"]
+orgs = ["aphrody-labs", "aphrody-dev"]
 name = "short product id, 2 to 12 characters"
 pattern = "^[a-z][a-z0-9-]{1,11}$"
 publishes = ["crates", "npm", "pypi", "nuget", "go", "ghcr"]
 prefix = "own-id"
 
 [kinds.unix]
-orgs = ["aphrody-dev"]
+orgs = ["aphrody-labs", "aphrody-dev"]
 name = "short product id (anu)"
 pattern = "^[a-z][a-z0-9-]{1,11}$"
 publishes = ["crates", "npm", "ghcr"]
 prefix = "own-id"
 
 [kinds.android]
-orgs = ["aphrody-dev"]
+orgs = ["aphrody-labs", "aphrody-dev"]
 name = "short product id (aydroid)"
 pattern = "^[a-z][a-z0-9-]{1,11}$"
 publishes = ["ghcr"]
 prefix = "own-id"
 
 [kinds.nt]
-orgs = ["aphrody-dev"]
+orgs = ["aphrody-labs", "aphrody-dev"]
 name = "short product id (aynt)"
 pattern = "^[a-z][a-z0-9-]{1,11}$"
 publishes = ["ghcr"]
@@ -223,16 +223,18 @@ members = ["yolo-ai", "yolo-backend", "yolo-cloudflare", "yolo-cross", "yolo-eng
 # The authority for a repository's own names stays its own naming.toml; a mismatch is reported, never auto-corrected.
 # --------------------------------------------------------------------------------------------------------------
 [repos]
-"aphrody-dev/aphrody" = "os"
-"aphrody-dev/ay" = "sdk"
-"aphrody-dev/anu" = "unix"
-"aphrody-dev/ai-os" = "ai"
-"aphrody-dev/aydroid" = "android"
-"aphrody-dev/aynt" = "nt"
-"aphrody-dev/aysh" = "tool"
+"aphrody-labs/aphrody" = "os"
+"aphrody-labs/ay" = "sdk"
+"aphrody-dev/anu" = "archive"
+"aphrody-dev/ai-os" = "archive"
+"aphrody-dev/aydroid" = "archive"
+"aphrody-labs/aynt" = "nt"
+"aphrody-dev/aysh" = "archive"
 "aphrody-dev/ay-tools" = "archive"
 "aphrody-dev/ayvpn" = "archive"
 "aphrody-dev/aphrody-dev" = "config"
+"aphrody-labs/ay-cf" = "app"
+"aphrody-labs/ay-media" = "app"
 "aphrody-labs/bun" = "runtime"
 "aphrody-labs/nie" = "game"
 "aphrody-labs/shenron" = "app"
@@ -323,7 +325,7 @@ why = "published on crates.io with underscores under the runtime's name; new cra
 kind = "crate-prefix"
 old = "bun-os-"
 new = "aphrody-"
-owner = "aphrody-dev/aphrody"
+owner = "aphrody-labs/aphrody"
 status = "frozen"
 why = "published; OS units belong to the OS repository's prefix"
 
@@ -331,17 +333,17 @@ why = "published; OS units belong to the OS repository's prefix"
 kind = "crate-prefix"
 old = "bunos-"
 new = "aphrody-"
-owner = "aphrody-dev/aphrody"
+owner = "aphrody-labs/aphrody"
 status = "frozen"
 why = "published; OS units belong to the OS repository's prefix"
 
 [[legacy]]
 kind = "crate-prefix"
 old = "aphrody-"
-new = "ai-os-"
-owner = "aphrody-dev/ai-os"
+new = "ay-"
+owner = "aphrody-labs/ay"
 status = "frozen"
-why = "agent, relay, model and RAG crates were published under the monorepo's prefix before the AI surface got its own repository; ai-os publishes new crates as ai-os-*"
+why = "aphrody-* is reserved for ay and aphrody (absorbed features); standalone workspaces use ay-*"
 
 [[legacy]]
 kind = "repo"

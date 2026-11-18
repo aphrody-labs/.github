@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 // Clone the non-archived repositories of GitHub owners on a fleet host and run check.ts there.
 //
-//   bun i18n/scan-remote.ts --host fr1 --dir /srv/xbuild/i18n --owners aphrody-labs,aphrody-dev \
+//   bun i18n/scan-remote.ts --host fr1 --dir /srv/xbuild/i18n --owners aphrody-labs \
 //       --max-fork-mb 200 --out result.json
 //
 // Files travel over ssh stdin and stdout (no scp). The token never reaches a command line or the remote environment listing: it is sent on stdin.
@@ -44,7 +44,7 @@ export function selectRepos(repos: Repo[], maxForkMb: number) {
 if (import.meta.main) {
   const host = arg("--host", "fr1")!;
   const dir = arg("--dir", "/srv/xbuild/i18n")!;
-  const owners = arg("--owners", "aphrody-labs,aphrody-dev")!.split(",");
+  const owners = arg("--owners", "aphrody-labs")!.split(",");
   const maxForkMb = Number(arg("--max-fork-mb", "200"));
   const out = arg("--out", "i18n-remote.json")!;
   const jobs = Number(arg("--jobs", "4"));

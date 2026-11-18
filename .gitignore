@@ -1,0 +1,48 @@
+# Dependencies and build output (github/gitignore Node + Bun)
+node_modules/
+dist/
+coverage/
+*.lcov
+.cache/
+*.tsbuildinfo
+
+# Logs and runtime
+logs/
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Secrets and local environment (STANDARD.md section 2)
+.env
+.env.*
+!.env.example
+!.env.*.example
+.dev.vars
+*.pem
+*.key
+*.p12
+*.pfx
+id_ed25519*
+id_rsa*
+
+# Local agent and machine state
+.private/
+.local/
+.claude/settings.local.json
+.claude/worktrees/
+
+# Editors and OS (github/gitignore Global)
+.DS_Store
+Thumbs.db
+[Dd]esktop.ini
+*.swp
+*~
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+!*.code-workspace

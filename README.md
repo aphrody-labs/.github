@@ -39,7 +39,7 @@ bun tools/apply.ts --apply --only=labels,rulesets
 
 ```sh
 bun tools/lint-standard.ts
-bun test
+bun test tools/
 ```
 
 Contributions follow the [organization guide](CONTRIBUTING.md). Report vulnerabilities as described in the [security policy](SECURITY.md).

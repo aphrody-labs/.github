@@ -62,7 +62,7 @@ export async function main() {
   const out = arg("--out")!;
   const srcRoot = arg("--src-root", "C:/src")!;
   const meta = new Map<string, { isFork: boolean; description: string }>();
-  for (const owner of ["aphrody-labs", "aphrody-dev"]) {
+  for (const owner of ["aphrody-labs", "rose-griffon"]) {
     const list = JSON.parse(Bun.spawnSync(["gh", "repo", "list", owner, "--limit", "1000", "--json", "name,isFork,description"]).stdout.toString());
     for (const r of list) meta.set(`${owner}/${r.name}`, { isFork: r.isFork, description: r.description ?? "" });
   }

@@ -2,7 +2,7 @@
 
 Version 1.0.0, 2026-11-17. Machine-readable twin: [standard.toml](standard.toml) (labels, required files, security settings, ruleset JSON, pinned actions, Cloudflare policy). When the two disagree, fix the prose to match the TOML. A repository deviates only by writing the deviation and its reason under **Deviations** in its README.
 
-Scope: the `aphrody-labs` organization (free plan) and the `aphrody-dev` user account (a user, not an organization: no org settings, teams or org secrets exist there). Repositories owned by another agent or preserved as archives are listed in `scope.skip_repos` and are read-only for the apply phase.
+Scope: the `aphrody-labs` organization (free plan), after consolidating former `aphrody-dev` repositories under `aphrody-labs`. Repositories owned by another agent, protected (`aphrody`, `ay`), or preserved as archives are listed in `scope.skip_repos` and are read-only for the apply phase.
 
 - [1. Repository classes](#1-repository-classes)
 - [2. Layout](#2-layout)

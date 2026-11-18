@@ -14,9 +14,10 @@ doc = "STANDARD.md"
 # Scope of the apply phase
 # ---------------------------------------------------------------------------------------------
 [scope]
-# Repositories owned by another agent or preserved: the apply phase reads them and never writes.
+# Repositories owned by another agent, protected, or preserved: the apply phase reads them and never writes.
 skip_repos = [
-  "aphrody-dev/aphrody",        # owned by agy; also owns aphrody.com and aphrody.app
+  "aphrody-labs/aphrody",       # protected OS repository (also owns aphrody.com and aphrody.app)
+  "aphrody-labs/ay",            # protected SDK and platform monorepo
   "aphrody-dev/ai-os",
   "aphrody-labs/nie",
   "aphrody-labs/open",
@@ -310,7 +311,7 @@ has_projects = false
 
 [discussions]
 categories = ["Announcements", "Q&A", "Ideas", "Show and tell"]
-enable_on = ["aphrody-dev/ay", "aphrody-dev/ANU", "aphrody-labs/aphrody-m3", "aphrody-labs/browser"]
+enable_on = ["aphrody-labs/ay", "aphrody-labs/aphrody-m3", "aphrody-labs/browser"]
 
 [pages]
 source = "workflow"                  # build_type = workflow; never a gh-pages or docs/ branch source
@@ -505,7 +506,7 @@ detect = "one updates entry per manifest directory found by the apply phase; git
 tiers = { solo = ["main-integrity", "tags-immutable"], gated = ["main-integrity", "tags-immutable", "main-gated"] }
 default_tier = "solo"
 # Repositories that start in the gated tier (published packages, production deploys, outside contributors). Extend by topic: aphrody-gated.
-gated_repos = ["aphrody-dev/ay", "aphrody-labs/aphrody-m3", "aphrody-labs/browser", "aphrody-labs/r2b"]
+gated_repos = ["aphrody-labs/ay", "aphrody-labs/aphrody-m3", "aphrody-labs/browser", "aphrody-labs/r2b"]
 gated_topic = "aphrody-gated"
 forks = "none"
 # Org rulesets and merge queue availability depend on plan: the apply phase tries, records the HTTP status, and falls back.
@@ -674,7 +675,7 @@ deploy_action = "cloudflare/wrangler-action (pinned)"
 # ---------------------------------------------------------------------------------------------
 [profile]
 output = "profile/README.md"
-owners = ["aphrody-labs", "aphrody-dev"]
+owners = ["aphrody-labs"]
 include_private = false
 include_archived = false
 sort = "stars desc, pushed desc, name"
@@ -687,9 +688,10 @@ id = "runtime"
 title = "Runtime and platform"
 blurb = "The SDK, the runtime, the browser, the AI OS and the services around them."
 repos = [
-  "aphrody-dev/ay", "aphrody-dev/ai-os", "aphrody-dev/aphrody", "aphrody-labs/browser", "aphrody-labs/aphrody-git",
+  "aphrody-labs/ay", "aphrody-labs/aphrody", "aphrody-labs/browser", "aphrody-labs/aphrody-git",
+  "aphrody-dev/ay-cf", "aphrody-dev/ay-media", "aphrody-labs/aynt",
   "aphrody-labs/depot_tools", "aphrody-labs/auto", "aphrody-labs/open", "aphrody-labs/msys",
-  "aphrody-labs/r2b", "aphrody-labs/shenron", "aphrody-labs/shenron-config", "aphrody-dev/aydroid", "aphrody-dev/aynt", "aphrody-dev/aysh",
+  "aphrody-labs/r2b", "aphrody-labs/shenron", "aphrody-labs/shenron-config",
   "aphrody-labs/claude",
 ]
 
@@ -710,7 +712,7 @@ id = "unix"
 title = "Unix and userland"
 blurb = "GNU and BSD userland, shells, toolchains and Linux, packaged as ANU."
 repos = [
-  "aphrody-dev/ANU", "aphrody-labs/bash", "aphrody-labs/dash", "aphrody-labs/gawk", "aphrody-labs/gnu-findutils",
+  "aphrody-labs/bash", "aphrody-labs/dash", "aphrody-labs/gawk", "aphrody-labs/gnu-findutils",
   "aphrody-labs/gnu-sed", "aphrody-labs/make", "aphrody-labs/readline", "aphrody-labs/binutils-gdb", "aphrody-labs/zig",
   "aphrody-labs/wayland-c", "aphrody-labs/steam-runtime-tools", "aphrody-labs/steamos-manager",
 ]
