@@ -505,7 +505,7 @@ detect = "one updates entry per manifest directory found by the apply phase; git
 tiers = { solo = ["main-integrity", "tags-immutable"], gated = ["main-integrity", "tags-immutable", "main-gated"] }
 default_tier = "solo"
 # Repositories that start in the gated tier (published packages, production deploys, outside contributors). Extend by topic: aphrody-gated.
-gated_repos = ["aphrody-dev/ay", "aphrody-labs/aphrody-m3", "aphrody-labs/browser", "aphrody-labs/r2b", "aphrody-labs/yolo"]
+gated_repos = ["aphrody-dev/ay", "aphrody-labs/aphrody-m3", "aphrody-labs/browser", "aphrody-labs/r2b"]
 gated_topic = "aphrody-gated"
 forks = "none"
 # Org rulesets and merge queue availability depend on plan: the apply phase tries, records the HTTP status, and falls back.
@@ -687,12 +687,10 @@ id = "runtime"
 title = "Runtime and platform"
 blurb = "The SDK, the runtime, the browser, the AI OS and the services around them."
 repos = [
-  "aphrody-dev/ay", "aphrody-dev/ai-os", "aphrody-dev/aphrody", "aphrody-labs/browser", "aphrody-labs/yolo",
-  "aphrody-labs/yolo-ui", "aphrody-labs/yolo-web", "aphrody-labs/yolo-zig", "aphrody-labs/yolo-backend",
-  "aphrody-labs/yolo-cloudflare", "aphrody-labs/google-bun", "aphrody-labs/gemini-super-app", "aphrody-labs/aphrody-git",
-  "aphrody-labs/depot_tools", "aphrody-labs/auto", "aphrody-labs/open", "aphrody-labs/msys", "aphrody-labs/legacy",
-  "aphrody-labs/r2b", "aphrody-labs/shenron", "aphrody-labs/shenron-config", "aphrody-dev/aydroid",
-  "aphrody-labs/antigravity-sdk-python", "aphrody-labs/claude",
+  "aphrody-dev/ay", "aphrody-dev/ai-os", "aphrody-dev/aphrody", "aphrody-labs/browser", "aphrody-labs/aphrody-git",
+  "aphrody-labs/depot_tools", "aphrody-labs/auto", "aphrody-labs/open", "aphrody-labs/msys",
+  "aphrody-labs/r2b", "aphrody-labs/shenron", "aphrody-labs/shenron-config", "aphrody-dev/aydroid", "aphrody-dev/aynt", "aphrody-dev/aysh",
+  "aphrody-labs/claude",
 ]
 
 [[profile.roles]]
@@ -705,7 +703,7 @@ repos = ["aphrody-labs/aphrody-m3"]
 id = "games"
 title = "Games and engines"
 blurb = "Original games and the engines under them."
-repos = ["aphrody-labs/nie", "aphrody-labs/yolo-engine", "aphrody-labs/wii-os", "aphrody-labs/fairy-tail-archive", "rose-griffon/rosegriffon"]
+repos = ["aphrody-labs/nie", "aphrody-labs/fairy-tail-archive", "rose-griffon/rosegriffon"]
 
 [[profile.roles]]
 id = "unix"
