@@ -682,13 +682,40 @@ sort = "stars desc, pushed desc, name"
 fork_listing = "collapsed <details> per family, names only"
 heading = "Aphrody Labs"
 tagline = "An OS, a browser, a Google and a Cloudflare/Vercel, crafted in any language."
+story = "One stack, built layer by layer in the language each layer needs: a toolchain that compiles, ships and upgrades everything (fw), the operating system and desktop (aphrody), the SDK every product builds on (ay), and the products on top of it, from original games (nie) to a live community site (shenron). Every other repository is a satellite of one of these five or an upstream fork they assemble."
+
+# The ordered stack shown first on the profile: rank is the order of this list.
+[[profile.flagships]]
+repo = "aphrody-labs/fw"
+name = "fw"
+role = "the toolchain and agent runtime: Fat-LTO and AOT Rust, a C ABI, WebAssembly, the MCP server and CLI, and the daemon that builds and upgrades the rest."
+
+[[profile.flagships]]
+repo = "aphrody-labs/aphrody"
+name = "aphrody"
+role = "the operating system layer and native desktop: the GPUI engine, Native Shell, the wgpu toolkit and the Aphrody studio, a Zed fork that keeps Zed extensions, themes and keymaps working."
+
+[[profile.flagships]]
+repo = "aphrody-labs/ay"
+name = "ay"
+role = "the SDK: C ABI, corelib, OpenAPI, Rust crates, Bun packages and the design system, versioned on its own so every product can depend on it."
+
+[[profile.flagships]]
+repo = "aphrody-labs/nie"
+name = "nie"
+role = "a Rust game engine and its tools (virtual filesystem, Level-5 and CRIWARE decoders, wgpu renderer, Bevy asset source) for original football games."
+
+[[profile.flagships]]
+repo = "aphrody-labs/shenron"
+name = "shenron"
+role = "dragonballfr.com: the Next.js site, HTTP API, Discord bot and manga translation pipeline, running on the platform."
 
 [[profile.roles]]
 id = "runtime"
 title = "Runtime and platform"
 blurb = "The SDK, the runtime, the browser, the AI OS and the services around them."
 repos = [
-  "aphrody-labs/ay", "aphrody-labs/aphrody", "aphrody-labs/browser", "aphrody-labs/aphrody-git",
+  "aphrody-labs/fw", "aphrody-labs/ay", "aphrody-labs/aphrody", "aphrody-labs/browser", "aphrody-labs/aphrody-git",
   "aphrody-dev/ay-cf", "aphrody-dev/ay-media", "aphrody-labs/aynt",
   "aphrody-labs/depot_tools", "aphrody-labs/auto", "aphrody-labs/open", "aphrody-labs/msys",
   "aphrody-labs/r2b", "aphrody-labs/shenron", "aphrody-labs/shenron-config",

@@ -20,6 +20,8 @@ type Repo = {
 };
 type Role = { id: string; title: string; blurb: string; repos?: string[]; patterns?: string[]; fallback_for_originals?: boolean };
 type Family = { title: string; patterns: string[] };
+/** A project of the ordered stack shown first, with the one line that says what it is in the story. */
+type Flagship = { repo: string; name: string; role: string };
 type ProfileConfig = {
   output: string;
   owners: string[];
@@ -27,6 +29,8 @@ type ProfileConfig = {
   include_archived: boolean;
   heading: string;
   tagline: string;
+  story?: string;
+  flagships?: Flagship[];
   roles: Role[];
   fork_families: Family[];
 };
@@ -126,6 +130,21 @@ lines.push(
   `${originals.length} projects · ${forks.length} upstream forks · [Standard](https://github.com/aphrody-labs/.github/blob/main/STANDARD.md) · [Security](https://github.com/aphrody-labs/.github/blob/main/SECURITY.md) · [Contributing](https://github.com/aphrody-labs/.github/blob/main/CONTRIBUTING.md)`,
 );
 lines.push("");
+
+if (config.story) {
+  lines.push(config.story);
+  lines.push("");
+}
+if (config.flagships?.length) {
+  lines.push("## The stack, in order");
+  lines.push("");
+  config.flagships.forEach((f, i) => {
+    const r = all.find((x) => x.full_name === f.repo);
+    const label = r && !r.private ? `[${f.name}](${r.html_url})` : `${f.name}${r?.private ? " (private)" : ""}`;
+    lines.push(`${i + 1}. **${label}**: ${f.role}`);
+  });
+  lines.push("");
+}
 
 for (const role of config.roles) {
   const rows = byRole.get(role.id) ?? [];
