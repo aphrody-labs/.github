@@ -7,13 +7,13 @@
 
 <p align="center">An OS, a browser, a Google and a Cloudflare/Vercel, crafted in any language.</p>
 
-39 projects · 1287 upstream forks · [Standard](https://github.com/aphrody-labs/.github/blob/main/STANDARD.md) · [Security](https://github.com/aphrody-labs/.github/blob/main/SECURITY.md) · [Contributing](https://github.com/aphrody-labs/.github/blob/main/CONTRIBUTING.md)
+40 projects · 1287 upstream forks · [Standard](https://github.com/aphrody-labs/.github/blob/main/STANDARD.md) · [Security](https://github.com/aphrody-labs/.github/blob/main/SECURITY.md) · [Contributing](https://github.com/aphrody-labs/.github/blob/main/CONTRIBUTING.md)
 
 One stack, built layer by layer in the language each layer needs: a toolchain that compiles, ships and upgrades everything (fw), the operating system and desktop (aphrody), the SDK every product builds on (ay), and the products on top of it, from original games (nie) to a live community site (shenron). Every other repository is a satellite of one of these five or an upstream fork they assemble.
 
 ## The stack, in order
 
-1. **fw (private)**: the toolchain and agent runtime: Fat-LTO and AOT Rust, a C ABI, WebAssembly, the MCP server and CLI, and the daemon that builds and upgrades the rest.
+1. **[fw](https://github.com/aphrody-labs/fw)**: the toolchain and agent runtime: Fat-LTO and AOT Rust, a C ABI, WebAssembly, the MCP server and CLI, and the daemon that builds and upgrades the rest.
 2. **[aphrody](https://github.com/aphrody-labs/aphrody)**: the operating system layer and native desktop: the GPUI engine, Native Shell, the wgpu toolkit and the Aphrody studio, a Zed fork that keeps Zed extensions, themes and keymaps working.
 3. **[ay](https://github.com/aphrody-labs/ay)**: the SDK: C ABI, corelib, OpenAPI, Rust crates, Bun packages and the design system, versioned on its own so every product can depend on it.
 4. **[nie](https://github.com/aphrody-labs/nie)**: a Rust game engine and its tools (virtual filesystem, Level-5 and CRIWARE decoders, wgpu renderer, Bevy asset source) for original football games.
@@ -26,11 +26,12 @@ The SDK, the runtime, the browser, the AI OS and the services around them.
 | Project | Description | Language |
 | :-- | :-- | :-- |
 | [aphrody-git](https://github.com/aphrody-labs/aphrody-git) | The Git stack as one repository: Git, gh, Git for Windows SDK and the Git libraries, as submodules | TypeScript |
-| [auto](https://github.com/aphrody-labs/auto) | auto: workflow automation, office suite and scraping (Bun + Rust) | TypeScript |
+| [auto](https://github.com/aphrody-labs/auto) | auto: workflow automation, office suite and scraping (Bun + Rust) | Rust |
 | [ay](https://github.com/aphrody-labs/ay) | Aphrody: an OS, a browser, a Google and a Cloudflare/Vercel, crafted in any language | Rust |
 | [browser](https://github.com/aphrody-labs/browser) | One browser monorepo: Bun, Servo, Obscura and agent-browser crates in a single flat Cargo workspace on our own V8, Skia and Blink | Rust |
 | [claude](https://github.com/aphrody-labs/claude) | Versioned global Claude Code config: aphrody plugin, settings, memory, Bun setup | TypeScript |
 | [depot_tools](https://github.com/aphrody-labs/depot_tools) | Mirror of chromium/tools/depot_tools | Python |
+| [fw](https://github.com/aphrody-labs/fw) | - | Rust |
 | [msys](https://github.com/aphrody-labs/msys) | MSYS2/MinGW-w64 ecosystem research monorepo (Arch/CachyOS-style, LLVM-pure) | TypeScript |
 | [open](https://github.com/aphrody-labs/open) | Aphrody open ecosystem monorepo: anomalyco (opencode, opentui, sst, openauth, models.dev...) + OpenAI/OpenAPI, Bun AOT + Rust LTO | TypeScript |
 | [r2b](https://github.com/aphrody-labs/r2b) | rea to build: REA reverse-engineering CLI/MCP server merged with the Replica app-cloning skills. | TypeScript |
