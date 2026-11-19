@@ -179,7 +179,7 @@ original_required = [
 # Required when the repository publishes a package, a release or a site.
 published_required = [".github/release.yml", ".github/workflows/release.yml"]
 # Recommended (lint warns).
-original_recommended = ["AGENTS.md", "docs/index.md", "CHANGELOG.md", ".markdownlint-cli2.jsonc", ".gitmessage", "REVIEW.md"]
+original_recommended = ["AGENTS.md", "MAP.tsv", "docs/index.md", "CHANGELOG.md", ".markdownlint-cli2.jsonc", ".gitmessage", "REVIEW.md"]
 # Never committed.
 forbidden = [".env", ".env.*", "*.pem", "*.p12", "*.pfx", "id_rsa", "id_ed25519", "*.sqlite-wal", ".dev.vars"]
 # A repository-level .github/ISSUE_TEMPLATE replaces the whole org set: keep the same five file names or none.

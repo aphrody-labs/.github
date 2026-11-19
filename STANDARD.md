@@ -54,9 +54,12 @@ AGENTS.md                 recommended: instructions for coding agents (build, te
   workflows/
     ci.yml                caller of a reusable CI workflow, job id "ci"
     release.yml           published repositories only (tag triggered)
+MAP.tsv + map.toml         recommended: byte-exact directory map (files, bytes, gate per folder), `bun tools/map.ts --root <repo> [--check]`
 docs/                     Markdown, or MDX for published sites
 src/ or crates/ or packages/ or cmd/    code, by stack
 ```
+
+`bun tools/scaffold.ts <repo>` writes the files above that are missing (license, CODEOWNERS, Dependabot for the manifests found, the `ci` caller, templates) and never overwrites.
 
 Inherited from `aphrody-labs/.github` when a repository has none: `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `SUPPORT.md`, the issue forms and the pull request template. A repository-level `.github/ISSUE_TEMPLATE/` replaces the whole inherited set, so keep all five files or none.
 
