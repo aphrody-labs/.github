@@ -73,7 +73,7 @@ README rules (`[readme]`):
 
 1. Title is the repository name, 60 characters at most, followed by one sentence that equals the repository description.
 2. At most five badges, one row: CI, license, and at most three more that carry information.
-3. Required sections in this order: **Why**, **Install**, **Usage**, **Documentation**, **Development**, **License**. A section may be one line; it may not be absent.
+3. Required sections in this order: **Install**, **Usage**, **Development**, **License** (`required_sections`); the template adds **Why** before them and **Documentation** after **Usage**. A section may be one line; it may not be absent.
 4. English first (`readme_language = "en"`); other languages come from the repository's i18n catalogs, never as the only README.
 5. Commands are copy-pasteable and tested; versions come from the manifest, not from prose.
 
@@ -99,7 +99,7 @@ Licenses: originals default to Apache-2.0; add a `LICENSE` file wherever the API
 | Repository | `^[a-z0-9][a-z0-9._-]*$`, at most 50 characters, no `-1` suffixes for duplicates (archive the duplicate instead). Forks keep the upstream name. |
 | Default branch | `main`. Forks keep upstream's branch. |
 | Tags | `vMAJOR.MINOR.PATCH[-prerelease]` (semver). Release tags are immutable. |
-| Commits | `area: summary` (Bun's shape), imperative, 72 characters at most; `type(scope): summary` is accepted (types: feat, fix, docs, chore, refactor, perf, test, build, ci, revert). Breaking: a `BREAKING CHANGE:` footer. No AI attribution trailers on new commits. Full rules and the checker: section 19. |
+| Commits | `area: summary`, imperative, 72 characters at most, no AI attribution trailers: [commit-format.md](docs/standards/commit-format.md). |
 | Workflow files | `ci.yml`, `release.yml`, `docs.yml`, `pages.yml`; the workflow `name:` equals the file stem. Reusable ones live only in this repository. |
 | Topics | lowercase kebab, at most 20, one role topic. |
 | Labels | section 5. |
@@ -261,8 +261,8 @@ Go: the tag is the release (module proxy). C and C++: release assets from the bu
 
 ## 13. Pages, wiki, discussions
 
-- **Pages**: only when a repository has a built site. Source is **GitHub Actions** (`build_type: workflow`) through the reusable `pages.yml` (`configure-pages`, `upload-pages-artifact`, `deploy-pages`); never a `gh-pages` branch or `/docs` source. HTTPS enforced. Custom domains follow section 14. Today only `google-bun` has Pages, and its workflow fails: fix it or disable Pages.
-- **Wiki**: off everywhere (21 empty wikis to disable). Documentation lives in the repository and is reviewed like code.
+- **Pages**: only when a repository has a built site. Source is **GitHub Actions** (`build_type: workflow`) through the reusable `pages.yml` (`configure-pages`, `upload-pages-artifact`, `deploy-pages`); never a `gh-pages` branch or `/docs` source. HTTPS enforced. Custom domains follow section 14.
+- **Wiki**: off everywhere; the apply phase turns off an empty wiki and lists one with content (move it to `docs/` first). Documentation lives in the repository and is reviewed like code.
 - **Discussions**: off by default; on for repositories with an outside audience (`discussions.enable_on`), with categories Announcements, Q&A, Ideas, Show and tell. Without Discussions, questions use the `question` label.
 - **Issues**: on for originals, off for forks. **Projects**: off; planning lives in issues and the organization's task tooling.
 
@@ -294,7 +294,7 @@ Policy (`[cloudflare]`), written from the 2026-11-17 inventory (1 account, 4 zon
 
 ## 16. Organization profile
 
-`profile/README.md` is generated, not edited. `profile/generate.ts` reads the live repository lists of `aphrody-labs` and `aphrody-dev` through the GitHub API, drops private and archived repositories, and groups the rest by role using `[profile]` in standard.toml:
+`profile/README.md` is generated, not edited. `profile/generate.ts` reads the live repository lists of the `[profile] owners` (`aphrody-labs`) through the GitHub API, drops private and archived repositories, and groups the rest by role using `[profile]` in standard.toml:
 
 | Group | Source |
 | :-- | :-- |

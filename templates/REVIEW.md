@@ -7,7 +7,7 @@ Standard: approve when the change definitely improves the code base, even if it 
 ## Before anything else
 
 - [ ] CI is green on every required job; a failure on the branch but not on the default branch is the author's (PR-07).
-- [ ] The title follows `type(scope): summary` (PR-01) and the description has what and why, how it was verified, risk and rollback (PR-03).
+- [ ] The title follows the commit subject rule, `area: summary` (PR-01, CO-01) and the description has what and why, how it was verified, risk and rollback (PR-03).
 - [ ] The change is one concern and small enough to read in one sitting; if not, ask for a series (PR-02, RV-09).
 
 ## Design
