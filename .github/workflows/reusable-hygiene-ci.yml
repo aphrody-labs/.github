@@ -1,4 +1,4 @@
-name: Reusable Hygiene & BOM Gate
+name: Reusable Hygiene & Secret Gate
 
 on:
   workflow_call:
@@ -8,7 +8,7 @@ on:
         type: string
         default: '["ubuntu-latest"]'
       repo_name:
-        description: "Repository name in repos.json / bom.toml"
+        description: "Repository name"
         type: string
         required: true
       run_gitleaks:
@@ -33,7 +33,7 @@ permissions:
 
 jobs:
   hygiene:
-    name: BOM, Anti-Hardcode & Secrets
+    name: Hygiene, Anti-Hardcode & Secrets
     runs-on: ${{ fromJSON(inputs.runs_on) }}
     timeout-minutes: 10
     steps:
@@ -43,25 +43,11 @@ jobs:
           submodules: false
           persist-credentials: false
 
-      - name: Checkout kit BOM control plane
-        if: ${{ inputs.repo_name != 'kit' }}
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: aphrody-labs/.github
-          path: kit
-          submodules: false
-          persist-credentials: false
-
       - name: Setup Bun (GitHub-hosted runner)
-        if: ${{ !contains(inputs.runs_on, 'self-hosted') }}
+        if: ${{ !contains(inputs.runs_on, 'self-hosted') && (inputs.anti_hardcode_cmd != '' || inputs.boundaries_cmd != '') }}
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version-file: kit/.bun-version
-
-      - name: Check repo against central Org BOM
-        working-directory: kit
-        shell: bash
-        run: bun scripts/bom.ts check --repos ${{ inputs.repo_name }}
+          bun-version: canary
 
       - name: Anti-hardcode gate
         if: ${{ inputs.anti_hardcode_cmd != '' }}
