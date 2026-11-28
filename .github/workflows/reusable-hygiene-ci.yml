@@ -8,7 +8,7 @@ on:
         type: string
         default: '["ubuntu-latest"]'
       repo_name:
-        description: "Repository name in fleet.json / fleet.bom.toml"
+        description: "Repository name in repos.json / bom.toml"
         type: string
         required: true
       run_gitleaks:
@@ -43,12 +43,12 @@ jobs:
           submodules: false
           persist-credentials: false
 
-      - name: Checkout aphrody-kit BOM control plane
-        if: ${{ inputs.repo_name != 'aphrody-kit' }}
+      - name: Checkout kit BOM control plane
+        if: ${{ inputs.repo_name != 'kit' }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: aphrody-labs/aphrody-kit
-          path: aphrody-kit
+          repository: aphrody-labs/.github
+          path: kit
           submodules: false
           persist-credentials: false
 
@@ -56,12 +56,12 @@ jobs:
         if: ${{ !contains(inputs.runs_on, 'self-hosted') }}
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version-file: aphrody-kit/.bun-version
+          bun-version-file: kit/.bun-version
 
-      - name: Check repo against central Fleet BOM
-        working-directory: aphrody-kit
+      - name: Check repo against central Org BOM
+        working-directory: kit
         shell: bash
-        run: bun scripts/fleet-bom.ts check --repos ${{ inputs.repo_name }}
+        run: bun scripts/bom.ts check --repos ${{ inputs.repo_name }}
 
       - name: Anti-hardcode gate
         if: ${{ inputs.anti_hardcode_cmd != '' }}

@@ -7,7 +7,7 @@ on:
         type: string
         default: "nightly-2026-11-14"
       run_xtask:
-        description: "Run cargo xtask release & R2 registry generation (aphrody-kit)"
+        description: "Run cargo xtask release & R2 registry generation (kit)"
         type: boolean
         default: true
       build_cmd:
