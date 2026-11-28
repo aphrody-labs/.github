@@ -1,0 +1,83 @@
+name: Reusable Hygiene & BOM Gate
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        description: "JSON array of runner labels"
+        type: string
+        default: '["ubuntu-latest"]'
+      repo_name:
+        description: "Repository name in fleet.json / fleet.bom.toml"
+        type: string
+        required: true
+      run_gitleaks:
+        description: "Run gitleaks secret scanner"
+        type: boolean
+        default: true
+      gitleaks_config:
+        description: "Path to gitleaks config"
+        type: string
+        default: ".gitleaks.toml"
+      anti_hardcode_cmd:
+        description: "Optional anti-hardcode gate command (e.g. bun run app:anti-hardcode)"
+        type: string
+        default: ""
+      boundaries_cmd:
+        description: "Optional workspace boundary gate command (e.g. bun run app:boundaries)"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  hygiene:
+    name: BOM, Anti-Hardcode & Secrets
+    runs-on: ${{ fromJSON(inputs.runs_on) }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: ${{ inputs.repo_name }}
+          submodules: false
+          persist-credentials: false
+
+      - name: Checkout aphrody-kit BOM control plane
+        if: ${{ inputs.repo_name != 'aphrody-kit' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: aphrody-labs/aphrody-kit
+          path: aphrody-kit
+          submodules: false
+          persist-credentials: false
+
+      - name: Setup Bun (GitHub-hosted runner)
+        if: ${{ !contains(inputs.runs_on, 'self-hosted') }}
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: aphrody-kit/.bun-version
+
+      - name: Check repo against central Fleet BOM
+        working-directory: aphrody-kit
+        shell: bash
+        run: bun scripts/fleet-bom.ts check --repos ${{ inputs.repo_name }}
+
+      - name: Anti-hardcode gate
+        if: ${{ inputs.anti_hardcode_cmd != '' }}
+        working-directory: ${{ inputs.repo_name }}
+        shell: bash
+        run: ${{ inputs.anti_hardcode_cmd }}
+
+      - name: Workspace boundary gate
+        if: ${{ inputs.boundaries_cmd != '' }}
+        working-directory: ${{ inputs.repo_name }}
+        shell: bash
+        run: ${{ inputs.boundaries_cmd }}
+
+      - name: Secret scan (gitleaks)
+        if: ${{ inputs.run_gitleaks }}
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: ${{ inputs.repo_name }}/${{ inputs.gitleaks_config }}

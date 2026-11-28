@@ -1,0 +1,172 @@
+name: Reusable Rust CI
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        description: "JSON array of runner labels"
+        type: string
+        default: '["ubuntu-latest"]'
+      timeout_minutes:
+        description: "Job timeout in minutes"
+        type: number
+        default: 30
+      toolchain:
+        description: "Rust toolchain channel (empty reads rust-toolchain.toml)"
+        type: string
+        default: ""
+      sibling_repo:
+        description: "Optional sibling repository to check out alongside this repo (e.g. aphrody-labs/ay)"
+        type: string
+        default: ""
+      sibling_path:
+        description: "Directory name for sibling repo checkout"
+        type: string
+        default: "ay"
+      checkout_path:
+        description: "Directory name for main repo when sibling_repo is set"
+        type: string
+        default: "."
+      check_fmt:
+        description: "Run cargo fmt --all --check"
+        type: boolean
+        default: true
+      clippy_args:
+        description: "Arguments passed to cargo clippy (empty skips clippy)"
+        type: string
+        default: "--workspace --all-targets"
+      test_args:
+        description: "Arguments passed to cargo test (empty skips tests)"
+        type: string
+        default: "--workspace"
+      wasm_check_cmd:
+        description: "Optional multiline wasm32 check command"
+        type: string
+        default: ""
+      run_cargo_deny:
+        description: "Run cargo-deny check sources when deny.toml exists"
+        type: boolean
+        default: false
+      build_profile:
+        description: "Optional release profile to verify (e.g. release-thin)"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust Clippy, Tests & Supply-Chain
+    runs-on: ${{ fromJSON(inputs.runs_on) }}
+    timeout-minutes: ${{ inputs.timeout_minutes }}
+    env:
+      CARGO_TERM_COLOR: always
+      RUST_BACKTRACE: "1"
+      CARGO_INCREMENTAL: "0"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: ${{ inputs.checkout_path }}
+          submodules: false
+          persist-credentials: false
+
+      - name: Checkout sibling repository
+        if: ${{ inputs.sibling_repo != '' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ inputs.sibling_repo }}
+          path: ${{ inputs.sibling_path }}
+          submodules: false
+          persist-credentials: false
+
+      - name: Resolve Rust toolchain from rust-toolchain.toml
+        id: toolchain
+        if: ${{ !contains(inputs.runs_on, 'self-hosted') }}
+        working-directory: ${{ inputs.checkout_path }}
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.toolchain }}" ]; then
+            echo "channel=${{ inputs.toolchain }}" >> "$GITHUB_OUTPUT"
+          elif [ -f rust-toolchain.toml ]; then
+            ch=$(sed -nE 's/^[[:space:]]*channel[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/p' rust-toolchain.toml | head -n1)
+            echo "channel=${ch:-stable}" >> "$GITHUB_OUTPUT"
+          else
+            echo "channel=stable" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Rust toolchain (GitHub-hosted runner)
+        if: ${{ !contains(inputs.runs_on, 'self-hosted') }}
+        uses: dtolnay/rust-toolchain@df2a88e9fe4098bad09cb42c3dec7187f15861fc # master
+        with:
+          toolchain: ${{ steps.toolchain.outputs.channel }}
+          components: rustfmt, clippy
+          targets: ${{ inputs.wasm_check_cmd != '' && 'wasm32-unknown-unknown' || '' }}
+
+      - name: Setup sccache (GitHub-hosted runner)
+        if: ${{ !contains(inputs.runs_on, 'self-hosted') }}
+        uses: mozilla-actions/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad # v0.0.9
+
+      - name: Cache Cargo artifacts (GitHub-hosted runner)
+        if: ${{ !contains(inputs.runs_on, 'self-hosted') }}
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: ${{ inputs.checkout_path }}
+
+      - name: Install clang + lld (GitHub-hosted runner)
+        if: ${{ !contains(inputs.runs_on, 'self-hosted') }}
+        shell: bash
+        run: sudo apt-get update && sudo apt-get install -y clang lld
+
+      - name: Verify Rust toolchain & sccache
+        working-directory: ${{ inputs.checkout_path }}
+        shell: bash
+        run: |
+          rustc --version
+          cargo --version
+          command -v sccache && sccache --show-stats || true
+
+      - name: Check formatting
+        if: ${{ inputs.check_fmt }}
+        working-directory: ${{ inputs.checkout_path }}
+        shell: bash
+        run: cargo fmt --all --check
+
+      - name: Clippy
+        if: ${{ inputs.clippy_args != '' }}
+        working-directory: ${{ inputs.checkout_path }}
+        shell: bash
+        run: cargo clippy ${{ inputs.clippy_args }} -- -D warnings
+
+      - name: Test
+        if: ${{ inputs.test_args != '' }}
+        working-directory: ${{ inputs.checkout_path }}
+        shell: bash
+        run: cargo test ${{ inputs.test_args }}
+
+      - name: Wasm32 check
+        if: ${{ inputs.wasm_check_cmd != '' }}
+        working-directory: ${{ inputs.checkout_path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ${{ inputs.wasm_check_cmd }}
+
+      - name: Supply-chain check (cargo-deny)
+        if: ${{ inputs.run_cargo_deny }}
+        working-directory: ${{ inputs.checkout_path }}
+        shell: bash
+        run: |
+          if [ -f deny.toml ]; then
+            if command -v cargo-deny >/dev/null 2>&1; then
+              cargo-deny check sources
+            else
+              echo "cargo-deny not installed on runner; skipping" >&2
+            fi
+          fi
+
+      - name: Optional Release Build
+        if: ${{ inputs.build_profile != '' }}
+        working-directory: ${{ inputs.checkout_path }}
+        shell: bash
+        run: cargo build --workspace --profile ${{ inputs.build_profile }}

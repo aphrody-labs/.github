@@ -1,0 +1,151 @@
+name: Reusable Bun CI
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        description: "JSON array of runner labels (e.g. '[\"ubuntu-latest\"]' or '[\"self-hosted\",\"linux\",\"x64\",\"cluster\"]')"
+        type: string
+        default: '["ubuntu-latest"]'
+      timeout_minutes:
+        description: "Job timeout in minutes"
+        type: number
+        default: 15
+      submodules:
+        description: "Checkout git submodules"
+        type: boolean
+        default: false
+      bun_version:
+        description: "Explicit Bun version/channel (e.g. 'canary'); overrides bun_version_file when set"
+        type: string
+        default: ""
+      bun_version_file:
+        description: "Path to .bun-version pin (used when bun_version is empty)"
+        type: string
+        default: ".bun-version"
+      install_cmd:
+        description: "Dependency install command"
+        type: string
+        default: "bun install --frozen-lockfile"
+      typecheck_cmd:
+        description: "Optional TypeScript check command"
+        type: string
+        default: ""
+      lint_cmd:
+        description: "Optional lint command"
+        type: string
+        default: ""
+      test_cmd:
+        description: "Test command"
+        type: string
+        default: "bun test"
+      extra_cmds:
+        description: "Optional newline-separated verification commands"
+        type: string
+        default: ""
+      validate_workflows:
+        description: "Parse all .github/workflows/*.yml with Bun.YAML.parse"
+        type: boolean
+        default: true
+      run_gitleaks:
+        description: "Run gitleaks secret scan"
+        type: boolean
+        default: false
+      gitleaks_config:
+        description: "Path to gitleaks config when run_gitleaks is true"
+        type: string
+        default: ".gitleaks.toml"
+
+permissions:
+  contents: read
+
+jobs:
+  bun:
+    name: Bun Checks & Tests
+    runs-on: ${{ fromJSON(inputs.runs_on) }}
+    timeout-minutes: ${{ inputs.timeout_minutes }}
+    env:
+      GITHUB_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: ${{ inputs.submodules }}
+          persist-credentials: false
+
+      - name: Setup Bun by version (GitHub-hosted runner)
+        if: ${{ !contains(inputs.runs_on, 'self-hosted') && inputs.bun_version != '' }}
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: ${{ inputs.bun_version }}
+
+      - name: Setup Bun by version file (GitHub-hosted runner)
+        if: ${{ !contains(inputs.runs_on, 'self-hosted') && inputs.bun_version == '' }}
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: ${{ inputs.bun_version_file }}
+
+      - name: Verify preinstalled Bun (self-hosted runner)
+        if: ${{ contains(inputs.runs_on, 'self-hosted') }}
+        shell: bash
+        run: |
+          if ! command -v bun >/dev/null 2>&1; then
+            echo "ERROR: bun missing on self-hosted runner" >&2
+            exit 1
+          fi
+          bun --version
+
+      - name: Cache Bun global store & install cache
+        if: ${{ !contains(inputs.runs_on, 'self-hosted') }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.bun/install/cache
+            ~/.bun/install/global
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock', 'package.json') }}
+          restore-keys: bun-${{ runner.os }}-
+
+      - name: Validate workflow YAML files
+        if: ${{ inputs.validate_workflows }}
+        shell: bash
+        run: |
+          bun -e '
+            import { readFileSync } from "node:fs";
+            const files = [...new Bun.Glob(".github/workflows/*.yml").scanSync(".")].sort();
+            for (const f of files) Bun.YAML.parse(readFileSync(f, "utf8"));
+            if (files.length === 0) throw new Error("No workflow files found");
+            console.log(`Validated ${files.length} workflow files`);
+          '
+
+      - name: Install dependencies
+        if: ${{ inputs.install_cmd != '' }}
+        shell: bash
+        run: ${{ inputs.install_cmd }}
+
+      - name: Typecheck
+        if: ${{ inputs.typecheck_cmd != '' }}
+        shell: bash
+        run: ${{ inputs.typecheck_cmd }}
+
+      - name: Lint
+        if: ${{ inputs.lint_cmd != '' }}
+        shell: bash
+        run: ${{ inputs.lint_cmd }}
+
+      - name: Test
+        if: ${{ inputs.test_cmd != '' }}
+        shell: bash
+        run: ${{ inputs.test_cmd }}
+
+      - name: Extra verification commands
+        if: ${{ inputs.extra_cmds != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ${{ inputs.extra_cmds }}
+
+      - name: Secret scan (gitleaks)
+        if: ${{ inputs.run_gitleaks }}
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: ${{ inputs.gitleaks_config }}

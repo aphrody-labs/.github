@@ -1,0 +1,243 @@
+# Aphrody Labs — Central Fleet Bill of Materials (BOM)
+# Single Source of Truth for toolchains, versioning policy, shared Rust crates,
+# shared Bun/npm catalog packages, and SHA-pinned GitHub Actions across all repos.
+#
+# Reconcile / verify with:
+#   bun scripts/fleet-bom.ts audit
+#   bun scripts/fleet-bom.ts sync --dry-run
+#   bun scripts/fleet-bom.ts check
+
+[meta]
+schema_version = 1
+organization = "aphrody-labs"
+hub_repo = "aphrody-labs/aphrody-kit"
+hub_ref = "main"
+
+[toolchains]
+bun = "1.4.6"
+rust_nightly = "nightly-2026-11-14"
+rust_stable = "1.100.0"
+rust_edition = "2024"
+rust_version = "1.100"
+typescript = "7.0.2"
+
+# Per-repository standardization policy (versioning scheme, Rust channel, CI runner).
+[repos.aphrody]
+version_scheme = "calver"
+rust_channel = "nightly"
+runner = "cluster"
+sibling_repo = "aphrody-labs/ay"
+
+[repos.aphrody-kit]
+version_scheme = "semver"
+rust_channel = "nightly"
+runner = "ubuntu-latest"
+
+[repos.ay]
+version_scheme = "calver"
+rust_channel = "nightly"
+runner = "cluster"
+
+[repos.nie]
+version_scheme = "semver"
+rust_channel = "stable"
+runner = "ubuntu-latest"
+
+[repos.shenron]
+version_scheme = "semver"
+rust_channel = "stable"
+runner = "ubuntu-latest"
+
+# Canonical shared Rust crates across [workspace.dependencies].
+# All drift (patch, minor, major, and pinned `=X.Y.Z`) fails `fleet-bom.ts check`
+# by default; `sync --apply` reconciles safe patch/minor updates automatically.
+[crates]
+anyhow = "1.0.104"
+async-trait = "0.1.92"
+axum = "0.8.9"
+base64 = "0.23.1"
+bevy_ecs = "0.20.1"
+blake3 = "1.8.7"
+bytes = "1.12.2"
+chrono = "0.4.45"
+clap = "4.6.9"
+crc32fast = "1.5.5"
+dirs = "7.0.0"
+flate2 = "1.1.11"
+futures-lite = "2.6.1"
+futures-util = "0.3.32"
+image = "0.25.10"
+js-sys = "0.3.107"
+libc = "0.2.191"
+log = "0.4.34"
+memmap2 = "0.9.12"
+naga = "30.0.2"
+wgpu = "30.0.1"
+png = "0.18.1"
+proc-macro2 = "1.0.107"
+rayon = "1.12.0"
+redis = "1.8.2"
+regex = "1.13.2"
+reqwest = "0.13.5"
+rusqlite = "0.43.0"
+rustls = "0.23.46"
+secrecy = "0.10.3"
+semver = "1.0.28"
+serde = "1.0.229"
+serde_json = "1.0.154"
+sha1 = "0.11.0"
+sha2 = "0.11.1"
+smallvec = "1.16.6"
+syn = "3.0.10"
+tempfile = "3.27.0"
+thiserror = "2.0.21"
+tokio = "1.54.1"
+tokio-tungstenite = "0.30.0"
+toml = "1.2.1"
+toml_edit = "0.25.20"
+tracing = "0.1.44"
+tracing-subscriber = "0.3.23"
+ureq = "3.5.2"
+url = "2.5.8"
+uuid = "1.26.0"
+wasm-bindgen = "0.2.130"
+wasm-bindgen-futures = "0.4.80"
+web-sys = "0.3.107"
+windows = "0.62.2"
+zerocopy = "0.8.66"
+zip = "9.8.2"
+
+# Canonical shared Bun/npm catalog packages across workspaces.catalog.
+[packages]
+"@ast-grep/napi" = "0.51.3"
+"@types/node" = "26.6.6"
+"@types/react" = "19.3.3"
+"@types/react-dom" = "19.3.0"
+ai = "7.0.183"
+react = "19.3.1"
+react-dom = "19.3.1"
+typescript = "7.0.2"
+undici-types = "8.3.0"
+zod = "4.6.7"
+
+# Canonical SHA-pinned GitHub Actions across all .github/workflows/*.yml.
+# Every action must be pinned to its immutable 40-char commit SHA.
+[actions."actions/checkout"]
+sha = "3d3c42e5aac5ba805825da76410c181273ba90b1"
+tag = "v7.0.1"
+
+[actions."actions/cache"]
+sha = "55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
+tag = "v6"
+
+[actions."actions/upload-artifact"]
+sha = "cf430e030ddbb5b0abf93d22962f4752f3646cd9"
+tag = "v7.0.2"
+
+[actions."actions/download-artifact"]
+sha = "9000827ccba6bdab643e8b6fd33ac0654aef8333"
+tag = "v8.0.2"
+
+[actions."actions/attest-build-provenance"]
+sha = "4d101475d8b20a2381f78447822ac1eab6504dd8"
+tag = "v4.2.2"
+
+[actions."actions/github-script"]
+sha = "f28e40c7f34bde8b3046d885e986cb6290c5673b"
+tag = "v7"
+
+[actions."actions/setup-go"]
+sha = "40f1582b2485089dde7abd97c1529aa768e1baff"
+tag = "v5"
+
+[actions."actions/setup-node"]
+sha = "949feb2413d6458794dcd2491c4babbbce0c15c1"
+tag = "v7"
+
+[actions."actions/setup-dotnet"]
+sha = "67a3573c9a986a3f9c594539f4ab511d57bb3ce9"
+tag = "v4"
+
+[actions."oven-sh/setup-bun"]
+sha = "0c5077e51419868618aeaa5fe8019c62421857d6"
+tag = "v2"
+
+[actions."dtolnay/rust-toolchain"]
+sha = "df2a88e9fe4098bad09cb42c3dec7187f15861fc"
+tag = "master"
+
+[actions."Swatinem/rust-cache"]
+sha = "d1527c8f67ef9af357290475d4af4b0fab8f12e0"
+tag = "v2.9.3"
+
+[actions."mozilla-actions/sccache-action"]
+sha = "7d986dd989559c6ecdb630a3fd2557667be217ad"
+tag = "v0.0.9"
+
+[actions."astral-sh/setup-uv"]
+sha = "1db35dd8eee11c5894872e0b383ae6c406cf738d"
+tag = "v10.4.0"
+
+[actions."gitleaks/gitleaks-action"]
+sha = "ff98106e4c7b2bc287b24eaf42907196329070c7"
+tag = "v2.3.9"
+
+[actions."softprops/action-gh-release"]
+sha = "8a0cd651e5b2365bd640854a3fa5dfc70e4875f3"
+tag = "v3"
+
+[actions."taiki-e/install-action"]
+sha = "75a7c0f87bd666af3cdb75c5b9e9d03ab6044e6f"
+tag = "v2.90.6"
+
+[actions."cloudflare/wrangler-action"]
+sha = "9acf94ace14e7dc412b076f2c5c20b8ce93c79cd"
+tag = "v3"
+
+[actions."peter-evans/create-pull-request"]
+sha = "3ffccacd46053766916f087ce41d627c0b8cf2d1"
+tag = "v8"
+
+[actions."mlugg/setup-zig"]
+sha = "d1434d08867e3ee9daa34448df10607b98908d29"
+tag = "v2"
+
+[actions."rui314/setup-mold"]
+sha = "339e96b4ff1f3bd865856ba4cbbe8818a7acb038"
+tag = "v1"
+
+[actions."docker/setup-buildx-action"]
+sha = "8d2750c68a42422c14e847fe6c8ac0403b4cbd6f"
+tag = "v3"
+
+[actions."docker/login-action"]
+sha = "c94ce9fb468520275223c153574b00df6fe4bcc9"
+tag = "v3"
+
+[actions."docker/metadata-action"]
+sha = "c299e40c65443455700f0fdfc63efafe5b349051"
+tag = "v5"
+
+[actions."docker/build-push-action"]
+sha = "10e90e3645eae34f1e60eeb005ba3a3d33f178e8"
+tag = "v6"
+
+[actions."github/codeql-action/init"]
+sha = "915412ff23e8b7659517e607487dbeae018f2934"
+tag = "v4"
+
+[actions."github/codeql-action/analyze"]
+sha = "915412ff23e8b7659517e607487dbeae018f2934"
+tag = "v4"
+
+[actions."actions/configure-pages"]
+sha = "983d7736d9b0ae728b81ab479565c72886d7745b"
+tag = "v5"
+
+[actions."actions/upload-pages-artifact"]
+sha = "56afc609e74202658d3ffba0e8f6dda462b719fa"
+tag = "v3"
+
+[actions."actions/deploy-pages"]
+sha = "d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e"
+tag = "v4"

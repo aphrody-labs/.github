@@ -1,0 +1,314 @@
+name: Reusable Repo Automation (Triage + Auto-Merge + Auto-PR + Auto-Issue)
+
+on:
+  workflow_call:
+    inputs:
+      enable_triage:
+        type: boolean
+        default: true
+      enable_automerge:
+        type: boolean
+        default: true
+      enable_auto_pr:
+        type: boolean
+        default: true
+      enable_auto_issue:
+        type: boolean
+        default: true
+      has_rust:
+        type: boolean
+        default: false
+      has_bun:
+        type: boolean
+        default: true
+      deps_cmd:
+        type: string
+        default: ""
+      audit_cmd:
+        type: string
+        default: ""
+      automerge_actors:
+        type: string
+        default: "renovate[bot],dependabot[bot],github-actions[bot],aphrody-bot"
+      pr_merge_method:
+        type: string
+        default: "squash"
+      dep_branch:
+        type: string
+        default: "chore/deps-auto"
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  triage:
+    if: ${{ inputs.enable_triage && (github.event_name == 'issues' || github.event_name == 'pull_request' || github.event_name == 'pull_request_target') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Ensure labels and triage PR or Issue
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const palette = {
+              "area:rust": "dea584",
+              "area:bun": "f7df1e",
+              "area:ci": "1d76db",
+              "area:edge": "f38020",
+              "area:docs": "0075ca",
+              "dependencies": "0366d6",
+              "automated": "5319e7",
+              "auto-merge": "0e8a16",
+              "audit": "b60205",
+              "bug": "d73a4a",
+              "size/S": "c2e0c6",
+              "size/M": "fef2c0",
+              "size/L": "f9d0c4"
+            };
+            const existing = await github.paginate(github.rest.issues.listLabelsForRepo, { owner, repo, per_page: 100 });
+            const existingNames = new Set(existing.map((l) => l.name));
+
+            const labelsToApply = new Set();
+            if (context.payload.pull_request) {
+              const pr = context.payload.pull_request;
+              const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: pr.number, per_page: 100 });
+              let totalChanges = 0;
+              for (const f of files) {
+                totalChanges += f.changes || 0;
+                const p = f.filename || "";
+                if (p.endsWith(".rs") || p.endsWith("Cargo.toml") || p.endsWith("Cargo.lock")) labelsToApply.add("area:rust");
+                if (p.endsWith(".ts") || p.endsWith(".tsx") || p.endsWith("package.json") || p.endsWith("bun.lock")) labelsToApply.add("area:bun");
+                if (p.startsWith(".github/") || p.endsWith("justfile")) labelsToApply.add("area:ci");
+                if (p.startsWith(".cloudflare/") || p.includes("wrangler")) labelsToApply.add("area:edge");
+                if (p.startsWith("docs/") || p.endsWith(".md") || p.endsWith(".mdx")) labelsToApply.add("area:docs");
+              }
+              labelsToApply.add(totalChanges <= 80 ? "size/S" : totalChanges <= 400 ? "size/M" : "size/L");
+              const trustedActors = `${{ inputs.automerge_actors }}`.split(",").map((s) => s.trim()).filter(Boolean);
+              if (trustedActors.includes(pr.user?.login || "")) {
+                labelsToApply.add("automated");
+                if ((pr.title || "").toLowerCase().includes("dep") || (pr.head?.ref || "").includes("deps")) {
+                  labelsToApply.add("dependencies");
+                }
+              }
+            } else if (context.payload.issue) {
+              const issue = context.payload.issue;
+              const text = `${issue.title || ""}\n${issue.body || ""}`.toLowerCase();
+              if (text.includes("cargo") || text.includes("rust") || text.includes("clippy")) labelsToApply.add("area:rust");
+              if (text.includes("bun") || text.includes("typescript") || text.includes("package.json")) labelsToApply.add("area:bun");
+              if (text.includes("workflow") || text.includes("ci") || text.includes("github actions")) labelsToApply.add("area:ci");
+              if (text.includes("bug") || text.includes("error") || text.includes("fail")) labelsToApply.add("bug");
+            }
+
+            for (const name of labelsToApply) {
+              if (!existingNames.has(name)) {
+                await github.rest.issues.createLabel({
+                  owner,
+                  repo,
+                  name,
+                  color: palette[name] || "ededed"
+                }).catch(() => {});
+              }
+            }
+
+            const issueNumber = context.payload.pull_request?.number || context.payload.issue?.number;
+            if (issueNumber && labelsToApply.size > 0) {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                labels: [...labelsToApply]
+              });
+            }
+
+  auto-merge:
+    if: ${{ inputs.enable_automerge && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') }}
+    needs: [triage]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Enable GitHub auto-merge for eligible PRs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUTOMERGE_ACTORS: ${{ inputs.automerge_actors }}
+          PR_MERGE_METHOD: ${{ inputs.pr_merge_method }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+          PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+        run: |
+          if [ "${PR_DRAFT}" = "true" ]; then
+            echo "PR is draft; skipping auto-merge."
+            exit 0
+          fi
+          if [ "${PR_HEAD_REPO}" != "${BASE_REPO}" ]; then
+            echo "Fork PR (${PR_HEAD_REPO}); skipping auto-merge."
+            exit 0
+          fi
+          eligible="false"
+          IFS=',' read -r -a actors <<< "${AUTOMERGE_ACTORS}"
+          for actor in "${actors[@]}"; do
+            trimmed="$(echo "$actor" | xargs)"
+            if [ -n "$trimmed" ] && [ "$trimmed" = "$PR_AUTHOR" ]; then
+              eligible="true"
+              break
+            fi
+          done
+          if [ "$eligible" != "true" ]; then
+            labels="$(gh pr view "$PR_URL" --json labels --jq '[.labels[].name] | join(",")' || echo "")"
+            case ",$labels," in
+              *,auto-merge,*) eligible="true" ;;
+            esac
+          fi
+          if [ "$eligible" != "true" ]; then
+            echo "PR author ${PR_AUTHOR} is not in automerge allowlist and lacks 'auto-merge' label."
+            exit 0
+          fi
+          case "$PR_MERGE_METHOD" in
+            merge) flag="--merge" ;;
+            rebase) flag="--rebase" ;;
+            *) flag="--squash" ;;
+          esac
+          if gh pr merge --auto "$flag" "$PR_URL"; then
+            echo "Enabled auto-merge ($flag) on $PR_URL"
+          else
+            echo "::notice::Could not enable auto-merge on $PR_URL (check repository allow_auto_merge / branch protection settings)."
+          fi
+
+  auto-pr-deps:
+    if: ${{ inputs.enable_auto_pr && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Bun
+        if: ${{ inputs.has_bun }}
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: canary
+
+      - name: Setup Rust toolchain
+        if: ${{ inputs.has_rust }}
+        uses: dtolnay/rust-toolchain@df2a88e9fe4098bad09cb42c3dec7187f15861fc # master
+        with:
+          toolchain: stable
+
+      - name: Refresh dependencies
+        env:
+          CUSTOM_DEPS_CMD: ${{ inputs.deps_cmd }}
+          HAS_BUN: ${{ inputs.has_bun }}
+          HAS_RUST: ${{ inputs.has_rust }}
+        run: |
+          if [ -n "$CUSTOM_DEPS_CMD" ]; then
+            bash -euo pipefail -c "$CUSTOM_DEPS_CMD"
+            exit 0
+          fi
+          if [ "$HAS_BUN" = "true" ] && [ -f package.json ]; then
+            bun update
+          fi
+          if [ "$HAS_RUST" = "true" ] && [ -f Cargo.toml ]; then
+            cargo update
+          fi
+
+      - name: Open or update automated dependency PR
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
+        with:
+          token: ${{ github.token }}
+          branch: ${{ inputs.dep_branch }}
+          delete-branch: true
+          commit-message: "chore(deps): automated dependency refresh"
+          title: "chore(deps): automated dependency refresh"
+          body: |
+            Automated dependency refresh generated by `aphrody-kit/.github/workflows/reusable-repo-automation.yml`.
+          labels: |
+            dependencies
+            automated
+            auto-merge
+
+  auto-issue-audit:
+    if: ${{ inputs.enable_auto_issue && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure')) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Bun
+        if: ${{ inputs.has_bun }}
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: canary
+
+      - name: Run audit check
+        id: audit
+        env:
+          AUDIT_CMD: ${{ inputs.audit_cmd }}
+        run: |
+          set +e
+          report_file="${RUNNER_TEMP}/audit-report.txt"
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "Workflow '${{ github.event.workflow_run.name }}' (#${{ github.event.workflow_run.run_number }}) failed on ${{ github.event.workflow_run.head_branch }}." > "$report_file"
+            echo "Run URL: ${{ github.event.workflow_run.html_url }}" >> "$report_file"
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+          elif [ -n "$AUDIT_CMD" ]; then
+            bash -o pipefail -c "$AUDIT_CMD" > "$report_file" 2>&1
+            code=$?
+            if [ $code -ne 0 ]; then
+              echo "status=failed" >> "$GITHUB_OUTPUT"
+            else
+              echo "status=ok" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "No audit_cmd configured; audit clean." > "$report_file"
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+          fi
+          {
+            echo "summary<<__EOF__"
+            tail -n 120 "$report_file"
+            echo "__EOF__"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upsert or resolve audit issue
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const status = "${{ steps.audit.outputs.status }}";
+            const summary = `${{ steps.audit.outputs.summary }}`;
+            const title = "[audit] Automated repository health report";
+            const openIssues = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: "open",
+              labels: "audit",
+              per_page: 20
+            });
+            const existing = openIssues.data.find((i) => i.title === title && !i.pull_request);
+            if (status === "failed") {
+              const body = [
+                "Automated health check reported a failure.",
+                "",
+                "```text",
+                summary.slice(0, 6000),
+                "```",
+                "",
+                `Run: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
+              ].join("\n");
+              if (existing) {
+                await github.rest.issues.update({ owner, repo, issue_number: existing.number, body });
+              } else {
+                await github.rest.issues.createLabel({ owner, repo, name: "audit", color: "b60205" }).catch(() => {});
+                await github.rest.issues.create({ owner, repo, title, body, labels: ["audit", "automated"] });
+              }
+            } else if (existing) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: existing.number,
+                body: `Resolved cleanly on run ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}.`
+              });
+              await github.rest.issues.update({ owner, repo, issue_number: existing.number, state: "closed" });
+            }
